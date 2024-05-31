@@ -1,0 +1,32 @@
+<!-- myapp/templates/character_detail.html -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Détails du personnage</title>
+</head>
+<body>
+    <h1>Détails du personnage</h1>
+    <p>Monde : {{ character.world.name }}</p>
+    <p>Description du monde : {{ character.world.description }}</p>
+    <p>Nom : {{ character.name }}</p>
+    <p>Classe : {{ character.get_character_class_display }}</p>
+    <p>Skills :
+        <ul>
+            {% for skill in character.skills.all %}
+                <li>{{ skill.name }}: {{ skill.description }}</li>
+            {% endfor %}
+        </ul>
+    </p>
+    <p>Points de vie (HP) : {{ character.hp }}</p>
+    <p>Inventaire :
+        <ul>
+            {% for item in character.inventory.all %}
+                <li>{{ item.name }}: {{ item.description }}</li>
+            {% endfor %}
+        </ul>
+    </p>
+    <!-- Ajoutez d'autres détails ici -->
+</body>
+</html>
