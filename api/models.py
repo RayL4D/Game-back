@@ -173,8 +173,8 @@ class CharacterInventory(models.Model):
 
 class Tile(models.Model):
     link_world = models.ForeignKey(World, on_delete=models.CASCADE, null=True, blank=True)
-    posX = models.PositiveIntegerField(validators=[MinValueValidator(0), MaxValueValidator(9)])
-    posY = models.PositiveIntegerField(validators=[MinValueValidator(0), MaxValueValidator(9)])
+    posX = models.PositiveIntegerField(validators=[MinValueValidator(0)])
+    posY = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     visited = models.BooleanField(default=False)  # Flag to track if the tile has been visited
     image = models.ImageField(upload_to='assets/images/tiles/', blank=True)  # tile image
     north_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='north_connected_tile')
