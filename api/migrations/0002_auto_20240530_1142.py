@@ -28,6 +28,7 @@ def create_tiles_for_world(apps, world, grid_size):
 
 
 def add_initial_data(apps, schema_editor):
+    #Image = apps.get_model('api', 'Image')
     World = apps.get_model('api', 'World')
     Tile = apps.get_model('api', 'Tile')
     Skill = apps.get_model('api', 'Skill')
@@ -43,8 +44,12 @@ def add_initial_data(apps, schema_editor):
 
     # Création de mondes
     world1 = World.objects.create(name='Land of the Ancients', description='A mysterious world filled with ancient magic.')
+    #world1.image = Image.objects.create(path='assets/images/worlds/world1.png', description='Image du monde Land of the Ancients')
+    #world1.save()
     world2 = World.objects.create(name='Dragon Kingdom', description='A kingdom where dragons rule supreme.')
+
     world3 = World.objects.create(name='Whispering Wilds', description='An untamed expanse of primal forests teeming with life and hidden dangers.')
+  
     world4 = World.objects.create(name='Sunken City of Stars', description='A submerged metropolis, bathed in an ethereal glow, where forgotten technology hums beneath the waves.')
 
 
@@ -88,6 +93,8 @@ def add_initial_data(apps, schema_editor):
         attack=1,
         #image='chemin/vers/#image_skeleton_warrior.png'  # Remplacez par le chemin réel de l'#image
     )
+    #monster1.image = Image.objects.create(path='assets/images/monsters/skeleton.png', description='Image du monstre Skeleton')
+    #monster1.save()
 
     monster2 = Monster.objects.create(
         name='Goblin Thief',
@@ -98,6 +105,7 @@ def add_initial_data(apps, schema_editor):
         #image='chemin/vers/#image_goblin_thief.png'  # Remplacez par le chemin réel de l'#image
     )
 
+
     # Création d'autres monstres
     monster3 = Monster.objects.create(
         name='Red Slime',
@@ -107,6 +115,7 @@ def add_initial_data(apps, schema_editor):
         attack=1,
         #image='chemin/vers/#image_red_slime.png'  # Remplacez par le chemin réel de l'#image
     )
+
 
     monster4 = Monster.objects.create(
         name='Fire Dragon',
@@ -143,6 +152,7 @@ def add_initial_data(apps, schema_editor):
         tile=Tile.objects.get(link_world=world1.id, posX=0, posY=2),
         #image='chemin/vers/#image_alchemy_shop.png'  # Remplacez par le chemin réel de l'#image
     )
+
     potion_healing = Item.objects.get(name='Healing Potion')
     ShopItem.objects.create(shop=alchemy_shop, item=potion_healing, price=15)
 
@@ -152,6 +162,7 @@ def add_initial_data(apps, schema_editor):
         tile=Tile.objects.get(link_world=world2.id, posX=1, posY=3),
         #image='chemin/vers/#image_equipment_shop.png'  # Remplacez par le chemin réel de l'#image
     )
+
     armor = Item.objects.create(
         name='Steel Armor',
         item_type='Equipment',

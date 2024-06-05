@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import World, Character, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
+from .models import  World, Character, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
 
 class WorldSerializer(serializers.ModelSerializer):
     class Meta:

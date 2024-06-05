@@ -8,10 +8,10 @@ import json
 
 # Create your models here.
 
+    
 class World(models.Model):  # Added model for World
     name = models.CharField(max_length=255, unique=True)  # Ensure unique world names
     description = models.TextField(blank=True)  # Optional world description
-    image = models.ImageField(upload_to='assets/images/worlds/', blank=True)  # Ajout du champ image pour World
 
 
 class Character(models.Model):
@@ -30,8 +30,7 @@ class Character(models.Model):
     inventory = models.ManyToManyField('Item', through='CharacterInventory')
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
-    image = models.ImageField(upload_to='assets/images/characters/', blank=True)  # Ajout du champ image pour Character
-
+    
 
     def save_game_state(self):
         # Serialize character data and store it in the session
@@ -89,7 +88,6 @@ class Character(models.Model):
             self.world = World.objects.first()  # Set the starting world
             self.current_tile = Tile.objects.filter(world=self.world).first()  # Set the starting tile
             self.hp = self.get_default_hp()  # Set HP based on character class
-            self.image = self.get_default_image()  # Set image based on character class
 
         super().save(*args, **kwargs)  # Call the parent class's save method
 
@@ -107,24 +105,11 @@ class Character(models.Model):
             'Rogue': 16,
         }
         return class_hp.get(self.character_class, 10)
-
-    def get_default_image(self):
-        # Define default images based on character class
-        class_images = {
-            'Warrior': 'assets/images/characters/warrior_image.png',
-            'Mage': 'assets/images/characters/mage_image.png',
-            'Priest': 'assets/images/characters/priest_image.png',
-            'Hunter': 'assets/images/characters/hunter_image.png',
-            'Rogue': 'assets/images/characters/rogue_image.png',
-        }
-        # Retourne l'image associée à la classe, ou une image par défaut si la classe n'est pas trouvée
-        return class_images.get(self.character_class, 'assets/images/characters/default_character_image.png')
     
 
 class Skill(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)  # Optional skill description
-    image = models.ImageField(upload_to='assets/images/skills/', blank=True)  # Ajout du champ image pour Skill
 
 
     def generate_description(self):
@@ -163,7 +148,6 @@ class Item(models.Model):
     is_equipped = models.BooleanField(default=False)
     description = models.TextField(blank=True)  # Optional item description
     stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
-    image = models.ImageField(upload_to='assets/images/items/', blank=True)  # Ajout du champ image pour Item
 
 
 class CharacterInventory(models.Model):
@@ -176,7 +160,6 @@ class Tile(models.Model):
     posX = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     posY = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     visited = models.BooleanField(default=False)  # Flag to track if the tile has been visited
-    image = models.ImageField(upload_to='assets/images/tiles/', blank=True)  # tile image
     north_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='north_connected_tile')
     south_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='south_connected_tile')
     east_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='east_connected_tile')
@@ -205,7 +188,6 @@ class Monster(models.Model):
         ('Vampire', 'Vampire'),
     ])
     attack = models.PositiveIntegerField(default=1)  # Monster attack power
-    image = models.ImageField(upload_to='assets/images/monsters/', blank=True)  # Ajout du champ image pour Monster
 
     #experience = models.PositiveIntegerField(default=0)  # Experience gained from defeating the monster
     # Add fields for monster defense, special abilities, loot drops, etc. (optional)
@@ -214,7 +196,6 @@ class Shop(models.Model):
     name = models.CharField(max_length=255)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     inventory = models.ManyToManyField(Item, through='ShopItem')
-    image = models.ImageField(upload_to='assets/images/shop/', blank=True)  # Ajout du champ image pour Shop
 
 
 class ShopItem(models.Model):
@@ -226,7 +207,6 @@ class Chest(models.Model):
     name = models.CharField(max_length=255)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     inventory = models.ManyToManyField(Item, through='ChestItem')
-    image = models.ImageField(upload_to='assets/images/chest/', blank=True)  # Ajout du champ image pour Item
 
 
 class ChestItem(models.Model):
