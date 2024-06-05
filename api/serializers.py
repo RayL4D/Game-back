@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import  World, Character, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
+from .models import User, World, Character, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'  # Les champs que vous voulez exposer
 
 class WorldSerializer(serializers.ModelSerializer):
     class Meta:

@@ -12,7 +12,9 @@ import json
 class World(models.Model):  # Added model for World
     name = models.CharField(max_length=255, unique=True)  # Ensure unique world names
     description = models.TextField(blank=True)  # Optional world description
-
+    
+    def get_image_path(self):
+        return f'assets/images/world/world{self.id}.png'
 
 class Character(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
@@ -30,7 +32,18 @@ class Character(models.Model):
     inventory = models.ManyToManyField('Item', through='CharacterInventory')
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
-    
+    def get_image_path(self):
+        # Construit le chemin de l'image en fonction de la classe du personnage
+        class_image_filename = {
+            'Warrior': 'warrior.png',
+            'Mage': 'mage.png',
+            'Priest': 'priest.png',
+            'Hunter': 'hunter.png',
+            'Rogue': 'rogue.png',
+
+            # ... autres correspondances de classes et d'images ...
+        }
+        return f'assets/images/characters/{class_image_filename.get(self.character_class, "default.png")}'    
 
     def save_game_state(self):
         # Serialize character data and store it in the session
@@ -110,7 +123,9 @@ class Character(models.Model):
 class Skill(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)  # Optional skill description
-
+    power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance d'attaque de la compétence
+    def get_image_path(self):
+        return f'assets/images/skills/skill{self.id}.png'
 
     def generate_description(self):
         # Example: Generate a description based on the skill name
@@ -148,7 +163,8 @@ class Item(models.Model):
     is_equipped = models.BooleanField(default=False)
     description = models.TextField(blank=True)  # Optional item description
     stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
-
+    def get_image_path(self):
+        return f'assets/images/items/item{self.id}.png'
 
 class CharacterInventory(models.Model):
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
@@ -166,7 +182,8 @@ class Tile(models.Model):
     west_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='west_connected_tile')
     portal_to_world = models.ForeignKey(World, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
     # Add fields for items in the tile or chest (consider a separate model for items in tiles)
-    
+    def get_image_path(self):
+        return f'assets/images/tiles/tile{self.id}.png'    
     
     # Méthode pour changer de monde
     def change_world(self, character):
@@ -188,7 +205,8 @@ class Monster(models.Model):
         ('Vampire', 'Vampire'),
     ])
     attack = models.PositiveIntegerField(default=1)  # Monster attack power
-
+    def get_image_path(self):
+        return f'assets/images/monsters/monster{self.id}.png'
     #experience = models.PositiveIntegerField(default=0)  # Experience gained from defeating the monster
     # Add fields for monster defense, special abilities, loot drops, etc. (optional)
 
@@ -196,7 +214,8 @@ class Shop(models.Model):
     name = models.CharField(max_length=255)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     inventory = models.ManyToManyField(Item, through='ShopItem')
-
+    def get_image_path(self):
+        return f'assets/images/shops/shop{self.id}.png'
 
 class ShopItem(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
@@ -207,7 +226,8 @@ class Chest(models.Model):
     name = models.CharField(max_length=255)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     inventory = models.ManyToManyField(Item, through='ChestItem')
-
+    def get_image_path(self):
+        return f'assets/images/chests/chest{self.id}.png'
 
 class ChestItem(models.Model):
     chest = models.ForeignKey(Chest, on_delete=models.CASCADE)

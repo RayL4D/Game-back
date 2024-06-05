@@ -28,6 +28,7 @@ schema_view = get_schema_view(
 
 
 router = DefaultRouter()
+router.register(r'user', views.UserViewSet)
 router.register(r'world', views.WorldViewSet)
 router.register(r'character', views.CharacterViewSet)
 router.register(r'skill', views.SkillViewSet)

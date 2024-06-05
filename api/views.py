@@ -2,13 +2,19 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets #,generics
-from .serializers import WorldSerializer, CharacterSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, MonsterSerializer, ShopSerializer, ShopItemSerializer, ChestSerializer, ChestItemSerializer, SavedGameStateSerializer 
+from .serializers import UserSerializer, WorldSerializer, CharacterSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, MonsterSerializer, ShopSerializer, ShopItemSerializer, ChestSerializer, ChestItemSerializer, SavedGameStateSerializer 
 from .models import World, Character, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
+from rest_framework import viewsets 
+from django.contrib.auth.models import User
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = []  # Autorise l'accès sans authentification
 
 class WorldViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

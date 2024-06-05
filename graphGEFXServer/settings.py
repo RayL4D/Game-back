@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'api',
     'rest_framework_swagger',
     'drf_yasg',
-    
+
 
 
 ]

@@ -44,8 +44,7 @@ def add_initial_data(apps, schema_editor):
 
     # Création de mondes
     world1 = World.objects.create(name='Land of the Ancients', description='A mysterious world filled with ancient magic.')
-    #world1.image = Image.objects.create(path='assets/images/worlds/world1.png', description='Image du monde Land of the Ancients')
-    #world1.save()
+ 
     world2 = World.objects.create(name='Dragon Kingdom', description='A kingdom where dragons rule supreme.')
 
     world3 = World.objects.create(name='Whispering Wilds', description='An untamed expanse of primal forests teeming with life and hidden dangers.')
