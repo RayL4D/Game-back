@@ -1,11 +1,10 @@
 # myapp/urls.py
 
 from django.urls import path, include, re_path
-from .views import WorldViewSet
+from .views import MyTokenObtainPairView
 from rest_framework.routers import DefaultRouter
 from api import views
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView
 )
 from drf_yasg.views import get_schema_view
@@ -41,8 +40,6 @@ router.register(r'shop', views.ShopViewSet)
 router.register(r'shopitem', views.ShopItemViewSet)
 router.register(r'chest', views.ChestViewSet)
 router.register(r'chestitem', views.ChestItemViewSet)
-router.register(r'savedsamestate', views.SavedGameStateViewSet)
-
 
 
 
@@ -50,7 +47,7 @@ urlpatterns = [
     #path('world', WorldView.as_view()),
     path('', include(router.urls)),
     # Autres URL...
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
