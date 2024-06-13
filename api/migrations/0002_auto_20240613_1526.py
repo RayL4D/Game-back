@@ -32,6 +32,7 @@ def create_tiles_for_world(apps, world, grid_size):
 def add_initial_data(apps, schema_editor):
     #Image = apps.get_model('api', 'Image')
     World = apps.get_model('api', 'World')
+    CharacterClass = apps.get_model('api', 'CharacterClass')
     Tile = apps.get_model('api', 'Tile')
     Skill = apps.get_model('api', 'Skill')
     Monster = apps.get_model('api', 'Monster')
@@ -52,6 +53,13 @@ def add_initial_data(apps, schema_editor):
     world3 = World.objects.create(name='Whispering Wilds', description='An untamed expanse of primal forests teeming with life and hidden dangers.')
   
     world4 = World.objects.create(name='Sunken City of Stars', description='A submerged metropolis, bathed in an ethereal glow, where forgotten technology hums beneath the waves.')
+
+    characterclass1 = CharacterClass.objects.create(name='Warrior', description='The warrior stands as a paragon of strength and defense. With Heroic Strike to unleash powerful attacks and Shield Bash to disrupt and stun enemies, they dominate the battlefield with unwavering might and tactical prowess.')
+    characterclass2 = CharacterClass.objects.create(name='Mage', description=' The mage wields the forces of fire and ice with unmatched skill. Casting Fireball to engulf foes in flames and Ice Bolt to chill them to the core, they dominate the battlefield with elemental fury. They summon storms that terrify enemies.')
+    characterclass3 = CharacterClass.objects.create(name='Hunter', description='In the many worlds of the game, the hunter is a master of precise and devastating shots. With his Aimed Shot for targeted strikes and Multi-Shot to hit multiple enemies at once, he dominates the battlefield with lethal precision.')
+    characterclass4 = CharacterClass.objects.create(name='Rogue', description='The rogue excels in stealth and precision. Using Backstab to deliver lethal strikes from the shadows and Gouge to incapacitate foes momentarily, they control the flow of combat with cunning and agility. ')
+    characterclass5 = CharacterClass.objects.create(name='Priest', description='The Priest is a master of restorative and radiant magic. With his Heal spell for restoring health and Holy Light to smite enemies with divine power, he supports allies and vanquishes foes with unparalleled brilliance.')
+
 
 
     # Créer des tuiles pour world1 avec une grille 3x3

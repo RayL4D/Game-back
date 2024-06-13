@@ -18,22 +18,9 @@ class World(models.Model):  # Added model for World
     def get_image_path(self):
         return f'assets/images/world/world{self.id}.png'
 
-class Character(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
-    name = models.CharField(max_length=255)
-    world = models.ForeignKey(World, on_delete=models.CASCADE)
-    character_class = models.CharField(max_length=255, choices=[
-        ('Warrior', 'Warrior'),
-        ('Mage', 'Mage'),
-        ('Priest', 'Priest'),
-        ('Hunter', 'Hunter'),
-        ('Rogue', 'Rogue'),
-    ])
-    hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
-    current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='character')  # Optional current tile
-    inventory = models.ManyToManyField('Item', through='CharacterInventory')
-    skills = models.ManyToManyField('Skill', through='CharacterSkill')
-    session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
+class CharacterClass(models.Model):  # New model for character classes
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
     def get_image_path(self):
         # Construit le chemin de l'image en fonction de la classe du personnage
         class_image_filename = {
@@ -46,6 +33,19 @@ class Character(models.Model):
             # ... autres correspondances de classes et d'images ...
         }
         return f'assets/images/characters/{class_image_filename.get(self.character_class, "default.png")}'    
+
+
+class Character(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
+    name = models.CharField(max_length=255)
+    world = models.ForeignKey(World, on_delete=models.CASCADE)
+    character_class = models.ForeignKey(CharacterClass, on_delete=models.SET_NULL, null=True)  # Dynamic class
+
+    hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
+    current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='character')  # Optional current tile
+    inventory = models.ManyToManyField('Item', through='CharacterInventory')
+    skills = models.ManyToManyField('Skill', through='CharacterSkill')
+    session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
 
     def save_game_state(self):
         # Serialize character data and store it in the session

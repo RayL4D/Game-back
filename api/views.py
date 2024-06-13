@@ -3,8 +3,8 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets #,generics
-from .serializers import UserSerializer, WorldSerializer, CharacterSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, MonsterSerializer, ShopSerializer, ShopItemSerializer, ChestSerializer, ChestItemSerializer, SavedGameStateSerializer 
-from .models import World, Character, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
+from .serializers import UserSerializer, WorldSerializer, CharacterSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, MonsterSerializer, ShopSerializer, ShopItemSerializer, ChestSerializer, ChestItemSerializer, SavedGameStateSerializer 
+from .models import World, Character, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -60,6 +60,10 @@ class CharacterViewSet(viewsets.ModelViewSet):
     serializer_class = CharacterSerializer
     permission_classes = [IsAuthenticated]
 
+class CharacterClassViewSet(viewsets.ModelViewSet):
+    queryset = CharacterClass.objects.all()
+    serializer_class = CharacterClassSerializer
+    permission_classes = [IsAuthenticated]
 
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all()
