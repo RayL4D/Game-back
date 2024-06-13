@@ -1,4 +1,5 @@
-# myapp/urls.py
+#graphGEFXServer/api/urls.py
+
 
 from django.urls import path, include, re_path
 from .views import MyTokenObtainPairView

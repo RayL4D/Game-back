@@ -1,3 +1,5 @@
+#graphGEFXServer/api/serializers.py
+
 from rest_framework import serializers
 from .models import User, World, Character, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
 

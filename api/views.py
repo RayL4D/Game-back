@@ -1,4 +1,5 @@
-# myapp/views.py
+#graphGEFXServer/api/view.py
+
 
 from django.shortcuts import render
 from rest_framework import viewsets #,generics

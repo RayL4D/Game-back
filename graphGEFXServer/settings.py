@@ -1,3 +1,5 @@
+#graphGEFXServer/graphGEFXServer/settings.py
+
 """
 Django settings for graphGEFXServer project.
 
@@ -60,7 +62,11 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Ajoutez l'URL de votre frontend Next.js
+]
+CORS_ALLOW_CREDENTIALS = True  # Permet l'envoi de cookies
+
 
 ROOT_URLCONF = 'graphGEFXServer.urls'
 
