@@ -78,3 +78,4 @@ class SavedGameStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SavedGameState
         fields = '__all__'
+

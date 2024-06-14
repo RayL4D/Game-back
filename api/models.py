@@ -38,7 +38,7 @@ class CharacterClass(models.Model):  # New model for character classes
 class Character(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
     name = models.CharField(max_length=255)
-    world = models.ForeignKey(World, on_delete=models.CASCADE)
+    world = models.ForeignKey(World, on_delete=models.SET_NULL, null=True)
     character_class = models.ForeignKey(CharacterClass, on_delete=models.SET_NULL, null=True)  # Dynamic class
 
     hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
@@ -246,3 +246,4 @@ class SavedGameState(models.Model):
             item.id for item in character.characterinventory_set.all()
         ])
         self.save()
+

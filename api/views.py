@@ -13,7 +13,7 @@ from rest_framework import viewsets
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-
+from rest_framework.decorators import action
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -64,7 +64,14 @@ class CharacterClassViewSet(viewsets.ModelViewSet):
     queryset = CharacterClass.objects.all()
     serializer_class = CharacterClassSerializer
     permission_classes = [IsAuthenticated]
-
+    # Nouvelle méthode pour récupérer la liste des classes
+    @action(detail=False, methods=['get'])
+    def list_classes(self, request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        # Extraire uniquement les noms des classes
+        class_names = [item['name'] for item in serializer.data]
+        return Response(class_names)
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
@@ -120,3 +127,5 @@ class SavedGameStateViewSet(viewsets.ModelViewSet):
     queryset = SavedGameState.objects.all()
     serializer_class = SavedGameStateSerializer
     permission_classes = [IsAuthenticated]
+
+    
