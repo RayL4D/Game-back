@@ -14,7 +14,7 @@ import json
 class World(models.Model):  # Added model for World
     name = models.CharField(max_length=255, unique=True)  # Ensure unique world names
     description = models.TextField(blank=True)  # Optional world description
-    
+        
     def get_image_path(self):
         return f'assets/images/world/world{self.id}.png'
 
@@ -75,21 +75,30 @@ class Character(models.Model):
             print("No saved game state found")
 
     def equip_starting_gear(self):
-        sword = Item.objects.filter(name="Sword").first()  # Assuming a default sword exists
+        sword = Item.objects.filter(name="Iron Sword").first()  # Assuming a default sword exists
         if sword:
             self.inventory.add(sword, through_defaults={'quantity': 1})
 
     def assign_class_skills(self):
+        print("Assigning skills for class:", self.character_class.name)  # Vérification du nom de la classe
+
         class_skills = {
-            'Warrior': ['Heroic Strike', 'Shield Bash'],
-            'Mage': ['Fireball', 'Ice Bolt'],
-            'Rogue': ['Backstab', 'Gouge'],
-            'Hunter': ['Aimed Shot', 'Multi-Shot'],
-            'Priest': ['Heal', 'Holy Light'],
+            "Warrior": ["Heroic Strike", "Shield Bash"],
+            "Mage": ["Fireball", "Ice Bolt"],
+            "Rogue": ["Backstab", "Gouge"],
+            "Hunter": ["Aimed Shot", "Multi-Shot"],
+            "Priest": ["Heal", "Holy Light"],
         }
-        for skill_name in class_skills.get(self.character_class, []):
+    
+    # Vérification si la classe existe dans le dictionnaire
+        if self.character_class.name not in class_skills:
+            print(f"No skills defined for class '{self.character_class.name}'")
+            return  # Quitter la méthode si aucune compétence n'est définie pour la classe
+
+        for skill_name in class_skills.get(self.character_class.name, []):
             try:
                 skill = Skill.objects.get(name=skill_name)
+                print("Adding skill:", skill_name)
                 self.skills.add(skill)
             except Skill.DoesNotExist:
                 print(f"Skill '{skill_name}' does not exist in the database.")
@@ -101,7 +110,7 @@ class Character(models.Model):
         if creating:
             # Set default values for new characters
             self.world = World.objects.first()  # Set the starting world
-            self.current_tile = Tile.objects.filter(world=self.world).first()  # Set the starting tile
+            self.current_tile = Tile.objects.filter(link_world=self.world).first()
             self.hp = self.get_default_hp()  # Set HP based on character class
 
         super().save(*args, **kwargs)  # Call the parent class's save method
@@ -119,7 +128,7 @@ class Character(models.Model):
             'Hunter': 18,
             'Rogue': 16,
         }
-        return class_hp.get(self.character_class, 10)
+        return class_hp.get(self.character_class.name, 10)  # Utiliser self.character_class.name
     
 
 class Skill(models.Model):

@@ -14,10 +14,41 @@ class WorldSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CharacterSerializer(serializers.ModelSerializer):
+    character_class = serializers.PrimaryKeyRelatedField(queryset=CharacterClass.objects.all())
+
     class Meta:
         model = Character
         fields = '__all__'
 
+    def create(self, validated_data):
+        character_class = validated_data.pop('character_class')
+        default_world = World.objects.first()
+
+        if default_world:
+            character = Character.objects.create(
+                character_class=character_class,
+                world=default_world,
+                **validated_data
+            )
+
+            print("Character created:", character)  # Afficher l'objet Character créé
+            print("Character class:", character.character_class)  # Vérifier si la classe est liée
+
+    # Appliquer les paramètres par défaut après la création du personnage
+            character.hp = character.get_default_hp()
+            character.equip_starting_gear()
+            character.assign_class_skills()
+
+            print("Character HP after get_default_hp:", character.hp)  # Vérifier les HP
+            print("Character inventory after equip_starting_gear:", list(character.inventory.all()))  # Vérifier l'inventaire
+            print("Character skills after assign_class_skills:", list(character.skills.all()))  # Vérifier les compétences
+
+            character.save()
+            return character
+
+        else:
+            raise serializers.ValidationError("Aucun monde disponible")
+    
 class CharacterClassSerializer(serializers.ModelSerializer):
     class Meta:
         model = CharacterClass

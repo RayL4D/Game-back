@@ -14,6 +14,8 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
+from rest_framework import status
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -56,22 +58,24 @@ class WorldViewSet(viewsets.ModelViewSet):
 #   serializer_class = WorldSerializer
 
 class CharacterViewSet(viewsets.ModelViewSet):
-    queryset = Character.objects.all()
-    serializer_class = CharacterSerializer
-    permission_classes = [IsAuthenticated]
+	queryset = Character.objects.all()
+	serializer_class = CharacterSerializer
+	permission_classes = [IsAuthenticated]
 
+	def create(self, request, *args, **kwargs):
+		serializer = self.get_serializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+
+		# Suppression des vérifications redondantes concernant le monde
+		self.perform_create(serializer)
+		headers = self.get_success_headers(serializer.data)
+		return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        
 class CharacterClassViewSet(viewsets.ModelViewSet):
     queryset = CharacterClass.objects.all()
     serializer_class = CharacterClassSerializer
     permission_classes = [IsAuthenticated]
-    # Nouvelle méthode pour récupérer la liste des classes
-    @action(detail=False, methods=['get'])
-    def list_classes(self, request):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        # Extraire uniquement les noms des classes
-        class_names = [item['name'] for item in serializer.data]
-        return Response(class_names)
+
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
