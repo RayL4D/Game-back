@@ -14,38 +14,38 @@ import json
 class World(models.Model):  # Added model for World
     name = models.CharField(max_length=255, unique=True)  # Ensure unique world names
     description = models.TextField(blank=True)  # Optional world description
-    
+        
     def get_image_path(self):
         return f'assets/images/world/world{self.id}.png'
+
+class CharacterClass(models.Model):  # New model for character classes
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+    def get_image_path(self):
+        # Construit le chemin de l'image en fonction de la classe du personnage
+        class_image_filename = {
+            'Warrior': 'Warrior1.png',
+            'Mage': 'Mage1.png',
+            'Priest': 'Priest1.png',
+            'Hunter': 'Hunter1.png',
+            'Rogue': 'Rogue1.png',
+
+            # ... autres correspondances de classes et d'images ...
+        }
+        return f'/img/Classes/{class_image_filename.get(self.name, "default.png")}'
+
 
 class Character(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
     name = models.CharField(max_length=255)
-    world = models.ForeignKey(World, on_delete=models.CASCADE)
-    character_class = models.CharField(max_length=255, choices=[
-        ('Warrior', 'Warrior'),
-        ('Mage', 'Mage'),
-        ('Priest', 'Priest'),
-        ('Hunter', 'Hunter'),
-        ('Rogue', 'Rogue'),
-    ])
+    world = models.ForeignKey(World, on_delete=models.SET_NULL, null=True)
+    character_class = models.ForeignKey(CharacterClass, on_delete=models.SET_NULL, null=True)  # Dynamic class
+
     hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
     current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='character')  # Optional current tile
     inventory = models.ManyToManyField('Item', through='CharacterInventory')
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
-    def get_image_path(self):
-        # Construit le chemin de l'image en fonction de la classe du personnage
-        class_image_filename = {
-            'Warrior': 'warrior.png',
-            'Mage': 'mage.png',
-            'Priest': 'priest.png',
-            'Hunter': 'hunter.png',
-            'Rogue': 'rogue.png',
-
-            # ... autres correspondances de classes et d'images ...
-        }
-        return f'assets/images/characters/{class_image_filename.get(self.character_class, "default.png")}'    
 
     def save_game_state(self):
         # Serialize character data and store it in the session
@@ -75,21 +75,30 @@ class Character(models.Model):
             print("No saved game state found")
 
     def equip_starting_gear(self):
-        sword = Item.objects.filter(name="Sword").first()  # Assuming a default sword exists
+        sword = Item.objects.filter(name="Iron Sword").first()  # Assuming a default sword exists
         if sword:
             self.inventory.add(sword, through_defaults={'quantity': 1})
 
     def assign_class_skills(self):
+        print("Assigning skills for class:", self.character_class.name)  # Vérification du nom de la classe
+
         class_skills = {
-            'Warrior': ['Heroic Strike', 'Shield Bash'],
-            'Mage': ['Fireball', 'Ice Bolt'],
-            'Rogue': ['Backstab', 'Gouge'],
-            'Hunter': ['Aimed Shot', 'Multi-Shot'],
-            'Priest': ['Heal', 'Holy Light'],
+            "Warrior": ["Heroic Strike", "Shield Bash"],
+            "Mage": ["Fireball", "Ice Bolt"],
+            "Rogue": ["Backstab", "Gouge"],
+            "Hunter": ["Aimed Shot", "Multi-Shot"],
+            "Priest": ["Heal", "Holy Light"],
         }
-        for skill_name in class_skills.get(self.character_class, []):
+    
+    # Vérification si la classe existe dans le dictionnaire
+        if self.character_class.name not in class_skills:
+            print(f"No skills defined for class '{self.character_class.name}'")
+            return  # Quitter la méthode si aucune compétence n'est définie pour la classe
+
+        for skill_name in class_skills.get(self.character_class.name, []):
             try:
                 skill = Skill.objects.get(name=skill_name)
+                print("Adding skill:", skill_name)
                 self.skills.add(skill)
             except Skill.DoesNotExist:
                 print(f"Skill '{skill_name}' does not exist in the database.")
@@ -101,7 +110,7 @@ class Character(models.Model):
         if creating:
             # Set default values for new characters
             self.world = World.objects.first()  # Set the starting world
-            self.current_tile = Tile.objects.filter(world=self.world).first()  # Set the starting tile
+            self.current_tile = Tile.objects.filter(link_world=self.world).first()
             self.hp = self.get_default_hp()  # Set HP based on character class
 
         super().save(*args, **kwargs)  # Call the parent class's save method
@@ -119,7 +128,7 @@ class Character(models.Model):
             'Hunter': 18,
             'Rogue': 16,
         }
-        return class_hp.get(self.character_class, 10)
+        return class_hp.get(self.character_class.name, 10)  # Utiliser self.character_class.name
     
 
 class Skill(models.Model):
@@ -127,7 +136,7 @@ class Skill(models.Model):
     description = models.TextField(blank=True)  # Optional skill description
     power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance d'attaque de la compétence
     def get_image_path(self):
-        return f'assets/images/skills/skill{self.id}.png'
+        return f'/img/Skills/skill{self.id}.png'
 
     def generate_description(self):
         # Example: Generate a description based on the skill name
@@ -246,3 +255,4 @@ class SavedGameState(models.Model):
             item.id for item in character.characterinventory_set.all()
         ])
         self.save()
+

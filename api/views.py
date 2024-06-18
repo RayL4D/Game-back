@@ -3,8 +3,8 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets #,generics
-from .serializers import UserSerializer, WorldSerializer, CharacterSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, MonsterSerializer, ShopSerializer, ShopItemSerializer, ChestSerializer, ChestItemSerializer, SavedGameStateSerializer 
-from .models import World, Character, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
+from .serializers import UserSerializer, WorldSerializer, CharacterSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, MonsterSerializer, ShopSerializer, ShopItemSerializer, ChestSerializer, ChestItemSerializer, SavedGameStateSerializer 
+from .models import World, Character, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -13,6 +13,8 @@ from rest_framework import viewsets
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.decorators import action
+from rest_framework import status
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -56,10 +58,23 @@ class WorldViewSet(viewsets.ModelViewSet):
 #   serializer_class = WorldSerializer
 
 class CharacterViewSet(viewsets.ModelViewSet):
-    queryset = Character.objects.all()
-    serializer_class = CharacterSerializer
-    permission_classes = [IsAuthenticated]
+	queryset = Character.objects.all()
+	serializer_class = CharacterSerializer
+	permission_classes = [IsAuthenticated]
 
+	def create(self, request, *args, **kwargs):
+		serializer = self.get_serializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+
+		# Suppression des vérifications redondantes concernant le monde
+		self.perform_create(serializer)
+		headers = self.get_success_headers(serializer.data)
+		return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        
+class CharacterClassViewSet(viewsets.ModelViewSet):
+    queryset = CharacterClass.objects.all()
+    serializer_class = CharacterClassSerializer
+    permission_classes = [IsAuthenticated]
 
 class SkillViewSet(viewsets.ModelViewSet):
     queryset = Skill.objects.all()
@@ -116,3 +131,5 @@ class SavedGameStateViewSet(viewsets.ModelViewSet):
     queryset = SavedGameState.objects.all()
     serializer_class = SavedGameStateSerializer
     permission_classes = [IsAuthenticated]
+
+    
