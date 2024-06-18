@@ -136,7 +136,7 @@ class Skill(models.Model):
     description = models.TextField(blank=True)  # Optional skill description
     power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance d'attaque de la compétence
     def get_image_path(self):
-        return f'assets/images/skills/skill{self.id}.png'
+        return f'/img/Skills/skill{self.id}.png'
 
     def generate_description(self):
         # Example: Generate a description based on the skill name

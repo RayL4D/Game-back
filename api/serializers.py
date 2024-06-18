@@ -61,9 +61,14 @@ class CharacterClassSerializer(serializers.ModelSerializer):
         
 
 class SkillSerializer(serializers.ModelSerializer):
+    image_path = serializers.SerializerMethodField()
+
     class Meta:
         model = Skill
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'power', 'image_path']  # Incluez image_path
+
+    def get_image_path(self, obj):
+        return obj.get_image_path()
 
 class CharacterSkillSerializer(serializers.ModelSerializer):
     class Meta:
