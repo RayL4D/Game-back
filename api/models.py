@@ -24,15 +24,15 @@ class CharacterClass(models.Model):  # New model for character classes
     def get_image_path(self):
         # Construit le chemin de l'image en fonction de la classe du personnage
         class_image_filename = {
-            'Warrior': 'warrior.png',
-            'Mage': 'mage.png',
-            'Priest': 'priest.png',
-            'Hunter': 'hunter.png',
-            'Rogue': 'rogue.png',
+            'Warrior': 'Warrior1.png',
+            'Mage': 'Mage1.png',
+            'Priest': 'Priest1.png',
+            'Hunter': 'Hunter1.png',
+            'Rogue': 'Rogue1.png',
 
             # ... autres correspondances de classes et d'images ...
         }
-        return f'assets/images/characters/{class_image_filename.get(self.character_class, "default.png")}'    
+        return f'/img/Classes/{class_image_filename.get(self.name, "default.png")}'
 
 
 class Character(models.Model):

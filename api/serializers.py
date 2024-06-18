@@ -50,10 +50,15 @@ class CharacterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Aucun monde disponible")
     
 class CharacterClassSerializer(serializers.ModelSerializer):
+    image_path = serializers.SerializerMethodField()  # Champ calculé pour le chemin de l'image
+
     class Meta:
         model = CharacterClass
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'image_path']  # Champs à renvoyer
 
+    def get_image_path(self, obj):
+        return obj.get_image_path()  # Appel de la méthode du modèle pour obtenir le chemin
+        
 
 class SkillSerializer(serializers.ModelSerializer):
     class Meta:
