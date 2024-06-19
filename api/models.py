@@ -194,7 +194,7 @@ class Tile(models.Model):
     portal_to_world = models.ForeignKey(World, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
     # Add fields for items in the tile or chest (consider a separate model for items in tiles)
     def get_image_path(self):
-        return f'assets/images/tiles/tile{self.id}.png'    
+        return f'/img/Tiles/tile{self.id}.png'    
     
     # Méthode pour changer de monde
     def change_world(self, character):

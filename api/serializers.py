@@ -86,9 +86,14 @@ class CharacterInventorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TileSerializer(serializers.ModelSerializer):
+    image_path = serializers.SerializerMethodField()  # Add this line
+
     class Meta:
         model = Tile
-        fields = '__all__'
+        fields = ['id', 'posX', 'posY', 'image_path',]   # Add 'image_path' here
+
+    def get_image_path(self, obj):
+        return obj.get_image_path() 
 
 class MonsterSerializer(serializers.ModelSerializer):
     class Meta:
