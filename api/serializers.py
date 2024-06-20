@@ -90,7 +90,7 @@ class TileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tile
-        fields = ['id', 'posX', 'posY', 'image_path',]   # Add 'image_path' here
+        fields = '__all__'   # Add 'image_path' here
 
     def get_image_path(self, obj):
         return obj.get_image_path() 
