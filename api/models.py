@@ -14,7 +14,8 @@ import json
 class World(models.Model):  # Added model for World
     name = models.CharField(max_length=255, unique=True)  # Ensure unique world names
     description = models.TextField(blank=True)  # Optional world description
-        
+    starting_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='starting_world')
+
     def get_image_path(self):
         return f'assets/images/world/world{self.id}.png'
 
@@ -40,6 +41,7 @@ class Character(models.Model):
     name = models.CharField(max_length=255)
     world = models.ForeignKey(World, on_delete=models.SET_NULL, null=True)
     character_class = models.ForeignKey(CharacterClass, on_delete=models.SET_NULL, null=True)  # Dynamic class
+    attack_power = models.PositiveIntegerField(default=1)
 
     hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
     current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='character')  # Optional current tile
@@ -119,6 +121,17 @@ class Character(models.Model):
             self.equip_starting_gear()  # Equip starting gear
             self.assign_class_skills()  # Assign class skills
 
+        # Vérifier si le personnage est mort après la contre-attaque
+        if self.hp <= 0:
+            self.respawn()  # Appeler une méthode pour gérer la réapparition
+
+    def respawn(self):
+        # Logique de réapparition
+        self.hp = self.get_default_hp()  # Réinitialiser les HP
+        self.current_tile = self.world.starting_tile  # Remettre le personnage à la tuile de départ (vous devrez définir starting_tile dans votre modèle World)
+        self.save()
+        # Vous pouvez également réinitialiser d'autres aspects du personnage ici si nécessaire
+
     def get_default_hp(self):
         # Define default HP based on character class
         class_hp = {
@@ -174,6 +187,8 @@ class Item(models.Model):
     is_equipped = models.BooleanField(default=False)
     description = models.TextField(blank=True)  # Optional item description
     stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
+    damage = models.PositiveIntegerField(default=0)  # Dégâts supplémentaires de l'arme
+
     def get_image_path(self):
         return f'assets/images/items/item{self.id}.png'
 
@@ -215,10 +230,10 @@ class Monster(models.Model):
         ('Troll', 'Troll'),
         ('Vampire', 'Vampire'),
     ])
-    attack = models.PositiveIntegerField(default=1)  # Monster attack power
+    attack_power = models.PositiveIntegerField(default=1)
+    experience = models.PositiveIntegerField(default=10)  # Exemple de valeur d'expérience    
     def get_image_path(self):
         return f'assets/images/monsters/monster{self.id}.png'
-    #experience = models.PositiveIntegerField(default=0)  # Experience gained from defeating the monster
     # Add fields for monster defense, special abilities, loot drops, etc. (optional)
 
 class Shop(models.Model):
@@ -245,9 +260,12 @@ class ChestItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
 class SavedGameState(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Associer la sauvegarde à l'utilisateur
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
     current_tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
-    inventory_data = models.TextField(blank=True)  # Store serialized inventory data
+    inventory_data = models.TextField(blank=True)
+    save_name = models.CharField(max_length=255)  # Nom de la sauvegarde (facultatif)
+    created_at = models.DateTimeField(auto_now_add=True)  # Date de création de la sauvegarde
 
     def save_from_character(self, character):
         self.current_tile = character.current_tile

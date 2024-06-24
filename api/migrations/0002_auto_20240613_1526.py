@@ -99,7 +99,7 @@ def add_initial_data(apps, schema_editor):
         hp=1,
         tile=Tile.objects.get(link_world=world1.id, posX=1, posY=0),
         monster_type='Skeleton',
-        attack=1,
+        attack_power=1,
         #image='chemin/vers/#image_skeleton_warrior.png'  # Remplacez par le chemin réel de l'#image
     )
     #monster1.image = Image.objects.create(path='assets/images/monsters/skeleton.png', description='Image du monstre Skeleton')
@@ -110,7 +110,7 @@ def add_initial_data(apps, schema_editor):
         hp=5,
         tile=Tile.objects.get(link_world=world1.id, posX=2, posY=0),
         monster_type='Goblin',
-        attack=2,
+        attack_power=2,
         #image='chemin/vers/#image_goblin_thief.png'  # Remplacez par le chemin réel de l'#image
     )
 
@@ -121,7 +121,7 @@ def add_initial_data(apps, schema_editor):
         hp=3,
         tile=Tile.objects.get(link_world=world1.id, posX=2, posY=1),
         monster_type='Slime',
-        attack=1,
+        attack_power=1,
         #image='chemin/vers/#image_red_slime.png'  # Remplacez par le chemin réel de l'#image
     )
 
@@ -131,7 +131,7 @@ def add_initial_data(apps, schema_editor):
         hp=100,
         tile=Tile.objects.get(link_world=world2.id, posX=4, posY=3),
         monster_type='Dragon',
-        attack=30,
+        attack_power=30,
         #image='chemin/vers/#image_fire_dragon.png'  # Remplacez par le chemin réel de l'#image
     ) 
 

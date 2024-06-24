@@ -54,7 +54,7 @@ class CharacterClassSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CharacterClass
-        fields = ['id', 'name', 'description', 'image_path']  # Champs à renvoyer
+        fields = '__all__'  # Champs à renvoyer
 
     def get_image_path(self, obj):
         return obj.get_image_path()  # Appel de la méthode du modèle pour obtenir le chemin
@@ -65,7 +65,7 @@ class SkillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Skill
-        fields = ['id', 'name', 'description', 'power', 'image_path']  # Incluez image_path
+        fields = '__all__'  # Incluez image_path
 
     def get_image_path(self, obj):
         return obj.get_image_path()
@@ -87,6 +87,10 @@ class CharacterInventorySerializer(serializers.ModelSerializer):
 
 class TileSerializer(serializers.ModelSerializer):
     image_path = serializers.SerializerMethodField()  # Add this line
+    has_east_door = serializers.BooleanField(source='east_door_id', read_only=True)
+    has_south_door = serializers.BooleanField(source='south_door_id', read_only=True)
+    has_north_door = serializers.BooleanField(source='south_north_id', read_only=True)
+    has_west_door = serializers.BooleanField(source='south_west_id', read_only=True)
 
     class Meta:
         model = Tile
