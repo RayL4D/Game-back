@@ -15,17 +15,17 @@ def create_tiles_for_world(apps, world, grid_size):
             tiles[(x, y)] = tile
 
     # Connect the tiles horizontally and vertically
-    for x in range(grid_size):
-        for y in range(grid_size):
+    for y in range(grid_size):
+        for x in range(grid_size):
             tile = tiles[(x, y)]
-            if x < grid_size - 1:  # Connect to the east if not the last column
-                tile.east_door = tiles[(x + 1, y)]
-            if y < grid_size - 1:  # Connect to the south if not the last row
-                tile.south_door = tiles[(x, y + 1)]
-            if x > 0:  # Connect to the west if not the first column
-                tile.west_door = tiles[(x - 1, y)]
-            if y > 0:  # Connect to the north if not the first row
-                tile.north_door = tiles[(x, y - 1)]
+            if y < grid_size - 1:  # Connect to the east if not the last column
+                tile.east_door = tiles[(x, y + 1)]
+            if x < grid_size - 1:  # Connect to the south if not the last row
+                tile.south_door = tiles[(x + 1, y)]
+            if y > 0:  # Connect to the west if not the first column
+                tile.west_door = tiles[(x, y - 1)]
+            if x > 0:  # Connect to the north if not the first row
+                tile.north_door = tiles[(x - 1, y)]
             tile.save()
 
 

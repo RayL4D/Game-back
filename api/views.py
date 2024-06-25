@@ -19,6 +19,37 @@ from .actions.attack_action import AttackAction
 from .actions.take_action import TakeAction
 from .actions.move_action import MoveAction
 
+class GameActionsViewSet(viewsets.ViewSet):
+    """
+    ViewSet pour gérer toutes les actions du jeu.
+    """
+
+    @action(detail=False, methods=['post'])
+    def perform_action(self, request):
+        character_id = request.data.get('character_id')
+        action_type = request.data.get('action_type')
+
+        try:
+            character = Character.objects.get(pk=character_id, user=request.user)
+        except Character.DoesNotExist:
+            return Response({"error": "Character not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        action_classes = {
+            'move': MoveAction,
+            'attack': AttackAction,
+            'take': TakeAction,
+            # Ajoutez d'autres actions ici
+        }
+
+        action_class = action_classes.get(action_type)
+        if action_class:
+            action = action_class(character, request.data)
+            action.validate()
+            result = action.execute()
+            return action.handle_response(result)
+        else:
+            return Response({"error": "Invalid action type"}, status=status.HTTP_400_BAD_REQUEST)
+        
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -74,25 +105,6 @@ class CharacterViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=True, methods=['post'])  
-    def action(self, request, pk=None):
-        character = self.get_object()
-        action_type = request.data.get('action_type')
-
-        action_classes = {
-            'attack': AttackAction,
-            'take': TakeAction,
-            'move': MoveAction,
-        }
-
-        action_class = action_classes.get(action_type)
-        if action_class:
-            action = action_class(character, request.data)
-            action.validate()  # Valider les données de la requête
-            result = action.execute()  # Exécuter l'action
-            return action.handle_response(result)  # Gérer la réponse
-        else:
-            return Response({"error": "Invalid action type"}, status=status.HTTP_400_BAD_REQUEST)
 
     def start_new_game(self, request):
         character_id = request.data.get('character_id')

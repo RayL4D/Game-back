@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import (
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
+from .views import GameActionsViewSet
 
 
 schema_view = get_schema_view(
@@ -42,6 +43,7 @@ router.register(r'shop', views.ShopViewSet)
 router.register(r'shopitem', views.ShopItemViewSet)
 router.register(r'chest', views.ChestViewSet)
 router.register(r'chestitem', views.ChestItemViewSet)
+router.register(r'game/actions', GameActionsViewSet, basename='game-actions')
 
 
 
