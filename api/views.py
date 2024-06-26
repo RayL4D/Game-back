@@ -96,6 +96,16 @@ class CharacterViewSet(viewsets.ModelViewSet):
     serializer_class = CharacterSerializer
     permission_classes = [IsAuthenticated]
 
+    @action(detail=True, methods=['post'])
+    def move(self, request, pk=None):
+        character = self.get_object()
+        direction = request.data.get('direction')
+
+        action = MoveAction(character, request.data)
+        action.validate()
+        result = action.execute()
+        return action.handle_response(result)
+    
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

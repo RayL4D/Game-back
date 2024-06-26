@@ -8,40 +8,42 @@ from rest_framework.response import Response
 
 class MoveAction(BaseAction):
     def validate(self):
-        new_posX = self.request_data.get('posX')
-        new_posY = self.request_data.get('posY')
+        direction = self.request_data.get('direction')
+        if not direction:
+            raise ValueError("Missing 'direction' parameter")
 
-        if not new_posX or not new_posY:
-            raise ValueError("Missing 'posX' or 'posY' parameter")
+        valid_directions = ['north', 'south', 'east', 'west']
+        if direction not in valid_directions:
+            raise ValueError("Invalid direction")
 
-        try:
-            new_posX = int(new_posX)
-            new_posY = int(new_posY)
-        except ValueError:
-            raise ValueError("Invalid 'posX' or 'posY' parameter")
+        # Vérifier si la tuile actuelle a une porte dans la direction indiquée
+        current_tile = self.character.current_tile
+        door_field = f"{direction}_door_id"
+        if not getattr(current_tile, door_field): 
+            raise ValueError(f"No door in the {direction} direction")
 
-        # Vérifier si la tuile existe dans le monde du personnage
-        if not Tile.objects.filter(link_world=self.character.world, posX=new_posX, posY=new_posY).exists():
-            raise ValueError("Invalid tile coordinates")
+        # Vérifier si l'ID de la porte est 1 (ou l'ID que vous souhaitez)
+        if getattr(current_tile, door_field) != 1:  # Remplacez 1 par l'ID de votre porte spécifique
+            raise ValueError(f"Cannot move in the {direction} direction (wrong door)")
 
     def execute(self):
-        new_posX = int(self.request_data.get('posX'))
-        new_posY = int(self.request_data.get('posY'))
-        new_tile = Tile.objects.get(link_world=self.character.world, posX=new_posX, posY=new_posY)
+        direction = self.request_data.get('direction')
+        current_tile = self.character.current_tile
 
-        # Vérifier si le mouvement est valide (si la tuile est adjacente)
-        if (
-            new_tile.north_door == self.character.current_tile or
-            new_tile.south_door == self.character.current_tile or
-            new_tile.east_door == self.character.current_tile or
-            new_tile.west_door == self.character.current_tile
-        ):
-            self.character.current_tile = new_tile
+        # Déterminer la tuile cible en fonction de la direction
+        if direction == 'north':
+            target_tile = current_tile.north_door
+        elif direction == 'south':
+            target_tile = current_tile.south_door
+        elif direction == 'east':
+            target_tile = current_tile.east_door
+        elif direction == 'west':
+            target_tile = current_tile.west_door
+
+        if target_tile and target_tile.id == 1:  # Vérifier si la porte est ouverte (ID = 1)
+            self.character.current_tile = target_tile
             self.character.save()
-
-            # Sauvegarder l'état du jeu dans la session
             self.character.save_game_state()
-
-            return {"success": "Character moved", "new_position": {"posX": new_posX, "posY": new_posY}}
+            return {"success": "Character moved", "new_position": {"posX": target_tile.posX, "posY": target_tile.posY}}
         else:
             return {"error": "Invalid move"}
