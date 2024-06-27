@@ -17,7 +17,7 @@ class World(models.Model):  # Added model for World
     starting_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='starting_world')
 
     def get_image_path(self):
-        return f'assets/images/world/world{self.id}.png'
+        return f'/img/World/world{self.id}.png'
 
 class CharacterClass(models.Model):  # New model for character classes
     name = models.CharField(max_length=255, unique=True)
@@ -190,7 +190,7 @@ class Item(models.Model):
     damage = models.PositiveIntegerField(default=0)  # Dégâts supplémentaires de l'arme
 
     def get_image_path(self):
-        return f'assets/images/items/item{self.id}.png'
+        return f'/img/Items/item{self.id}.png'
 
 class CharacterInventory(models.Model):
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
@@ -267,6 +267,13 @@ class SavedGameState(models.Model):
     save_name = models.CharField(max_length=255)  # Nom de la sauvegarde (facultatif)
     created_at = models.DateTimeField(auto_now_add=True)  # Date de création de la sauvegarde
 
+    def save(self, *args, **kwargs):
+        # Limiter le nombre de sauvegardes à 5 par utilisateur
+        existing_saves = SavedGameState.objects.filter(user=self.user).count()
+        if existing_saves >= 5 and self.pk is None:  # self.pk is None signifie que c'est une nouvelle sauvegarde
+            raise ValueError("Maximum number of saves reached (5)")
+        super().save(*args, **kwargs)
+        
     def save_from_character(self, character):
         self.current_tile = character.current_tile
         self.inventory_data = json.dumps([  # Serialize inventory item IDs

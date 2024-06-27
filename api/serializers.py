@@ -26,6 +26,7 @@ class CharacterSerializer(serializers.ModelSerializer):
 
         if default_world:
             character = Character.objects.create(
+                user=self.context['request'].user,  # Utilisez request.user ici
                 character_class=character_class,
                 world=default_world,
                 **validated_data
@@ -76,10 +77,14 @@ class CharacterSkillSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ItemSerializer(serializers.ModelSerializer):
+    image_path = serializers.SerializerMethodField()  # Add this line
     class Meta:
         model = Item
         fields = '__all__'
-
+        
+    def get_image_path(self, obj):
+        return obj.get_image_path() 
+    
 class CharacterInventorySerializer(serializers.ModelSerializer):
     class Meta:
         model = CharacterInventory
@@ -125,7 +130,10 @@ class ChestItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SavedGameStateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SavedGameState
-        fields = '__all__'
+    character_id = serializers.IntegerField(source='character.id')
+    user_id = serializers.IntegerField(source='user.id')
+    current_tile_id = serializers.IntegerField(source='current_tile.id')
 
+    class Meta:
+        model = SavedGameState        
+        fields = '__all__'

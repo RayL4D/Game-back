@@ -18,6 +18,7 @@ from rest_framework import status
 from .actions.attack_action import AttackAction
 from .actions.take_action import TakeAction
 from .actions.move_action import MoveAction
+from django.core import serializers
 
 class GameActionsViewSet(viewsets.ViewSet):
     """
@@ -105,41 +106,53 @@ class CharacterViewSet(viewsets.ModelViewSet):
         action.validate()
         result = action.execute()
         return action.handle_response(result)
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Suppression des vérifications redondantes concernant le monde
+        # Remove redundant world checks
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-
+    @action(detail=False, methods=['post'])
     def start_new_game(self, request):
+        print("Données de la requête :", request.data)  
+
         character_id = request.data.get('character_id')
-        save_name = request.data.get('save_name', '')  # Optionnel: nom de la sauvegarde
+
+        if not character_id:
+            return Response({"error": "L'ID du personnage est requis"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            character = Character.objects.get(pk=character_id, user=request.user)  # Vérifier que le personnage appartient à l'utilisateur
+            character = Character.objects.get(id=character_id, user=request.user)  
+            print("Personnage récupéré :", character)  
+
+            # Récupérer les objets Item de l'inventaire du personnage
+            inventory_items = character.inventory.all()
+            
+            # Sérialiser les objets Item en JSON (vous pouvez personnaliser la sérialisation si besoin)
+            inventory_data = serializers.serialize('json', inventory_items)
+
+            saved_game = SavedGameState.objects.create(
+                user=request.user,
+                character=character,
+                current_tile=character.current_tile,
+                inventory_data=inventory_data,  # Stocker les données d'inventaire sérialisées
+                save_name=request.data.get('save_name', '')
+            )
+            print("SavedGameState créé :", saved_game)  
+
+            saved_game_serializer = SavedGameStateSerializer(saved_game)
+            return Response(saved_game_serializer.data, status=status.HTTP_201_CREATED)
+
         except Character.DoesNotExist:
-            return Response({"error": "Character not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Réinitialiser l'état du jeu
-        character.reset_character()
-
-        # Créer une nouvelle sauvegarde (SavedGameState)
-        saved_game = SavedGameState.objects.create(
-            user=request.user,
-            character=character,
-            current_tile=character.current_tile,
-            save_name=save_name
-        )
-
-        serializer = SavedGameStateSerializer(saved_game)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({"error": "Personnage non trouvé ou n'appartient pas à l'utilisateur"}, status=status.HTTP_404_NOT_FOUND)
     
-
+        except Exception as e:  # Capturez les exceptions potentielles lors de la création de la sauvegarde
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 class CharacterClassViewSet(viewsets.ModelViewSet):
     queryset = CharacterClass.objects.all()
     serializer_class = CharacterClassSerializer
@@ -202,5 +215,11 @@ class SavedGameStateViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Filtrer les sauvegardes pour l'utilisateur actuel
-        return SavedGameState.objects.filter(user=self.request.user)
+        return self.queryset.filter(user=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def get_saved_games(self, request):
+        saved_games = self.get_queryset()  # Filtrer les sauvegardes de l'utilisateur
+        serializer = self.get_serializer(saved_games, many=True)
+        return Response(serializer.data)
+    
