@@ -5,26 +5,39 @@
 from django.db import migrations
 
 
-def create_tiles_for_world(apps, world, grid_size):
+def create_tiles_for_world(apps, world_id, grid_size):
     Tile = apps.get_model('api', 'Tile')
+    World = apps.get_model('api', 'World')
+    world = World.objects.get(pk=world_id)
+
     # Créer les tuiles
     tiles = {}
     for x in range(grid_size):
         for y in range(grid_size):
-            tile = Tile.objects.create(link_world_id=world, posX=x, posY=y)
+            tile = Tile.objects.create(link_world=world, posX=x, posY=y)
             tiles[(x, y)] = tile
+            
+            # Si c'est la dernière tuile, définir le portail vers le monde suivant
+            if x == grid_size - 1 and y == grid_size - 1:
+                next_world_id = world.id + 1
+                try:
+                    next_world = World.objects.get(pk=next_world_id)
+                    tile.portal_to_world = next_world
+                except World.DoesNotExist:
+                    pass  # Pas de monde suivant, donc pas de portail
+                tile.save()
 
-    # Connect the tiles horizontally and vertically
+    # Connecter les tuiles horizontalement et verticalement (inchangé)
     for y in range(grid_size):
         for x in range(grid_size):
             tile = tiles[(x, y)]
-            if y < grid_size - 1:  # Connect to the east if not the last column
+            if y < grid_size - 1:
                 tile.east_door = tiles[(x, y + 1)]
-            if x < grid_size - 1:  # Connect to the south if not the last row
+            if x < grid_size - 1:
                 tile.south_door = tiles[(x + 1, y)]
-            if y > 0:  # Connect to the west if not the first column
+            if y > 0:
                 tile.west_door = tiles[(x, y - 1)]
-            if x > 0:  # Connect to the north if not the first row
+            if x > 0:
                 tile.north_door = tiles[(x - 1, y)]
             tile.save()
 

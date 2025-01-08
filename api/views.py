@@ -151,8 +151,8 @@ class CharacterViewSet(viewsets.ModelViewSet):
             return Response({"error": "Personnage non trouvé ou n'appartient pas à l'utilisateur"}, status=status.HTTP_404_NOT_FOUND)
     
         except Exception as e:  # Capturez les exceptions potentielles lors de la création de la sauvegarde
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)      
+        
 class CharacterClassViewSet(viewsets.ModelViewSet):
     queryset = CharacterClass.objects.all()
     serializer_class = CharacterClassSerializer

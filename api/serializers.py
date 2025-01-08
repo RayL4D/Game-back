@@ -91,11 +91,11 @@ class CharacterInventorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TileSerializer(serializers.ModelSerializer):
-    image_path = serializers.SerializerMethodField()  # Add this line
-    has_east_door = serializers.BooleanField(source='east_door_id', read_only=True)
-    has_south_door = serializers.BooleanField(source='south_door_id', read_only=True)
-    has_north_door = serializers.BooleanField(source='south_north_id', read_only=True)
-    has_west_door = serializers.BooleanField(source='south_west_id', read_only=True)
+    north_door_id = serializers.IntegerField(source='north_door.id', allow_null=True)  # Ajout de allow_null=True
+    east_door_id = serializers.IntegerField(source='east_door.id', allow_null=True)
+    south_door_id = serializers.IntegerField(source='south_door.id', allow_null=True)
+    west_door_id = serializers.IntegerField(source='west_door.id', allow_null=True)
+
 
     class Meta:
         model = Tile
