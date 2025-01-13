@@ -1,16 +1,16 @@
 #graphGEFXServer/api/serializers.py
 
 from rest_framework import serializers
-from .models import User, World, Character, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, Monster, Shop, ShopItem, Chest, ChestItem, SavedGameState
+from .models import User, Map, Character, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, Chest, ChestItem, SavedGameState
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'  # Les champs que vous voulez exposer
 
-class WorldSerializer(serializers.ModelSerializer):
+class MapSerializer(serializers.ModelSerializer):
     class Meta:
-        model = World
+        model = Map
         fields = '__all__'
 
 class CharacterSerializer(serializers.ModelSerializer):
@@ -22,13 +22,13 @@ class CharacterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         character_class = validated_data.pop('character_class')
-        default_world = World.objects.first()
+        default_map = Map.objects.first()
 
-        if default_world:
+        if default_map:
             character = Character.objects.create(
                 user=self.context['request'].user,  # Utilisez request.user ici
                 character_class=character_class,
-                world=default_world,
+                world=default_map,
                 **validated_data
             )
 
@@ -104,9 +104,9 @@ class TileSerializer(serializers.ModelSerializer):
     def get_image_path(self, obj):
         return obj.get_image_path() 
 
-class MonsterSerializer(serializers.ModelSerializer):
+class NPCSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Monster
+        model = NPC
         fields = '__all__'
 
 class ShopSerializer(serializers.ModelSerializer):

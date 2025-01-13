@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'drf_yasg',
     'corsheaders',
+    'django_extensions',
+    'graphviz'
 
 
 
@@ -88,6 +90,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'graphGEFXServer.wsgi.application'
 
+GRAPH_MODELS = {
+  'all_applications': True,
+  'group_models': True,
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

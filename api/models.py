@@ -9,16 +9,34 @@ import datetime
 import json
 
 # Create your models here.
-
     
-class World(models.Model):  # Added model for World
+class Map(models.Model):  # Added model for World
     name = models.CharField(max_length=255, unique=True)  # Ensure unique world names
     description = models.TextField(blank=True)  # Optional world description
-    starting_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='starting_world')
 
     def get_image_path(self):
         return f'/img/World/world{self.id}.png'
 
+class Tile(models.Model):
+    map_id= models.ForeignKey(Map, on_delete=models.CASCADE, null=True, blank=True)
+    posX = models.PositiveIntegerField(validators=[MinValueValidator(0)])
+    posY = models.PositiveIntegerField(validators=[MinValueValidator(0)])
+    visited = models.BooleanField(default=False)  # Flag to track if the tile has been visited
+    north_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='north_connected_tile')
+    south_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='south_connected_tile')
+    east_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='east_connected_tile')
+    west_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='west_connected_tile')
+    portal_to_world = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
+    # Add fields for items in the tile (consider a separate model for items in tiles)
+  
+    
+    # Méthode pour changer de monde
+    def change_world(self, character):
+        if self.portal_to_world:
+            character.world = self.portal_to_world
+            character.save()
+
+    
 class CharacterClass(models.Model):  # New model for character classes
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
@@ -35,11 +53,31 @@ class CharacterClass(models.Model):  # New model for character classes
         }
         return f'/img/Classes/{class_image_filename.get(self.name, "default.png")}'
 
+class Item(models.Model):
+    name = models.CharField(max_length=255)
+    item_type = models.CharField(max_length=255, choices=[
+        ('Weapon', 'Weapon'),
+        ('Armor', 'Armor'),
+        ('Potion', 'Potion'),
+        ('Consumable', 'Consumable'),
+        ('Quest', 'Quest'),
+        ('Junk', 'Junk'),
+        ('Manuscript', 'Manuscript'),
+        ('Gold', 'Gold'),
+        ('Silver', 'Silver'),
+        ('Bronze', 'Bronze'),
+        ])
+    is_equipped = models.BooleanField(default=False)
+    description = models.TextField(blank=True)  # Optional item description
+    stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
+    damage = models.PositiveIntegerField(default=0)  # Dégâts supplémentaires de l'arme
 
+    def get_image_path(self):
+        return f'/img/Items/item{self.id}.png'
 class Character(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
     name = models.CharField(max_length=255)
-    world = models.ForeignKey(World, on_delete=models.SET_NULL, null=True)
+    Map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True)
     character_class = models.ForeignKey(CharacterClass, on_delete=models.SET_NULL, null=True)  # Dynamic class
     attack_power = models.PositiveIntegerField(default=1)
 
@@ -48,6 +86,12 @@ class Character(models.Model):
     inventory = models.ManyToManyField('Item', through='CharacterInventory')
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)  # Date de création de la partie
+    updated_at = models.DateTimeField(auto_now=True)  # Date de la dernière mise à jour
+    primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
+    secondary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_secondary_weapon')
+    critical_hit_chance = models.IntegerField(default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    miss_chance = models.IntegerField(default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
 
     def save_game_state(self):
         # Serialize character data and store it in the session
@@ -77,9 +121,11 @@ class Character(models.Model):
             print("No saved game state found")
 
     def equip_starting_gear(self):
-        sword = Item.objects.filter(name="Iron Sword").first()  # Assuming a default sword exists
-        if sword:
-            self.inventory.add(sword, through_defaults={'quantity': 1})
+        starting_weapon = Item.objects.filter(name="Iron Sword").first()
+        if starting_weapon:
+            self.primary_weapon = starting_weapon
+            self.save()
+
 
     def assign_class_skills(self):
         print("Assigning skills for class:", self.character_class.name)  # Vérification du nom de la classe
@@ -111,9 +157,10 @@ class Character(models.Model):
         creating = not self.pk  # Check if the character is being created
         if creating:
             # Set default values for new characters
-            self.world = World.objects.first()  # Set the starting world
-            self.current_tile = Tile.objects.filter(link_world=self.world).first()
+            self.map = Map.objects.first()  # Set the starting map
+            self.current_tile = Tile.objects.filter(link_world=self.map).first()
             self.hp = self.get_default_hp()  # Set HP based on character class
+
 
         super().save(*args, **kwargs)  # Call the parent class's save method
 
@@ -127,8 +174,8 @@ class Character(models.Model):
 
     def respawn(self):
         # Logique de réapparition
-        self.hp = self.get_default_hp()  # Réinitialiser les HP
-        self.current_tile = self.world.starting_tile  # Remettre le personnage à la tuile de départ (vous devrez définir starting_tile dans votre modèle World)
+        self.hp = self.get_default_hp()  # Réinitialiser les HP 
+        self.current_tile = Tile.objects.filter(link_world=self.map).first()
         self.save()
         # Vous pouvez également réinitialiser d'autres aspects du personnage ici si nécessaire
 
@@ -143,6 +190,32 @@ class Character(models.Model):
         }
         return class_hp.get(self.character_class.name, 10)  # Utiliser self.character_class.name
     
+def equip_weapon(self, item):
+    if not item or not isinstance(item, Item):
+        return
+
+    if item.item_type != 'Weapon':
+        print(f"Cannot equip {item.name} as a weapon (wrong item type)")
+        return
+
+    # Unequip current weapon if necessary
+    if self.primary_weapon:
+        self.primary_weapon = None
+    elif self.secondary_weapon:
+        self.secondary_weapon = None
+
+    # Equip the new weapon (check for empty slot)
+    if not self.primary_weapon:
+        self.primary_weapon = item
+    elif not self.secondary_weapon:
+        self.secondary_weapon = item
+    self.save()
+
+    # Update equipped flag in CharacterInventory (if applicable)
+    if hasattr(self, 'characterinventory_set'):
+        for entry in self.characterinventory_set.filter(item=item):
+            entry.is_equipped = True
+            entry.save()
 
 class Skill(models.Model):
     name = models.CharField(max_length=255)
@@ -177,14 +250,16 @@ class Item(models.Model):
     name = models.CharField(max_length=255)
     item_type = models.CharField(max_length=255, choices=[
         ('Weapon', 'Weapon'),
+        ('Armor', 'Armor'),
         ('Potion', 'Potion'),
+        ('Consumable', 'Consumable'),
+        ('Quest', 'Quest'),
+        ('Junk', 'Junk'),
         ('Manuscript', 'Manuscript'),
         ('Gold', 'Gold'),
         ('Silver', 'Silver'),
-        ('Food', 'Food'),
-        ('Equipment', 'Equipment'),
-    ])
-    is_equipped = models.BooleanField(default=False)
+        ('Bronze', 'Bronze'),
+        ])
     description = models.TextField(blank=True)  # Optional item description
     stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
     damage = models.PositiveIntegerField(default=0)  # Dégâts supplémentaires de l'arme
@@ -195,45 +270,46 @@ class Item(models.Model):
 class CharacterInventory(models.Model):
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)  # Allow stacking items
+    quantity = models.PositiveIntegerField(default=1)
+    is_equipped = models.BooleanField(default=False)  # New field
 
-class Tile(models.Model):
-    link_world = models.ForeignKey(World, on_delete=models.CASCADE, null=True, blank=True)
-    posX = models.PositiveIntegerField(validators=[MinValueValidator(0)])
-    posY = models.PositiveIntegerField(validators=[MinValueValidator(0)])
-    visited = models.BooleanField(default=False)  # Flag to track if the tile has been visited
-    north_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='north_connected_tile')
-    south_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='south_connected_tile')
-    east_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='east_connected_tile')
-    west_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='west_connected_tile')
-    portal_to_world = models.ForeignKey(World, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
-    # Add fields for items in the tile or chest (consider a separate model for items in tiles)
-  
+
     
-    # Méthode pour changer de monde
-    def change_world(self, character):
-        if self.portal_to_world:
-            character.world = self.portal_to_world
-            character.save()
-
-
-class Monster(models.Model):
+class NPC(models.Model):
     name = models.CharField(max_length=255)
     hp = models.PositiveIntegerField(default=1)  # Monsters should have at least 1 HP
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
-    monster_type = models.CharField(max_length=255, choices=[
+    species = models.CharField(max_length=255, choices=[
+        ('Human', 'Human'),
+        ('Orc', 'Orc'),
+        ('Elf', 'Elf'),
+        ('Dwarf', 'Dwarf'),
         ('Goblin', 'Goblin'),
-        ('Skeleton', 'Skeleton'),
-        ('Slime', 'Slime'),
-        ('Dragon', 'Dragon'),
         ('Troll', 'Troll'),
-        ('Vampire', 'Vampire'),
+        ('Undead', 'Undead'),
+        ('Dragon', 'Dragon'),
+        ('Beast', 'Beast'),
+    ])
+    role = models.CharField(max_length=255)
+    behaviour = models.CharField(max_length=255, choices=[
+        ('Friendly', 'Friendly'),
+        ('Neutral', 'Neutral'),
+        ('Hostile', 'Hostile'),
     ])
     attack_power = models.PositiveIntegerField(default=1)
-    experience = models.PositiveIntegerField(default=10)  # Exemple de valeur d'expérience    
+    experience = models.PositiveIntegerField(default=10)  # Exemple de valeur d'expérience
+
+
     def get_image_path(self):
         return f'assets/images/monsters/monster{self.id}.png'
     # Add fields for monster defense, special abilities, loot drops, etc. (optional)
+
+class Dialogue(models.Model):
+    text = models.TextField()
+    NPC = models.ForeignKey(NPC, on_delete=models.CASCADE)
+    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    def get_image_path(self):
+        return f'assets/images/dialogues/dialogue{self.id}.png'
 
 class Shop(models.Model):
     name = models.CharField(max_length=255)
@@ -247,16 +323,7 @@ class ShopItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     price = models.PositiveIntegerField(default=0)  # Price of the item in the shop
 
-class Chest(models.Model):
-    name = models.CharField(max_length=255)
-    tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
-    inventory = models.ManyToManyField(Item, through='ChestItem')
-    def get_image_path(self):
-        return f'assets/images/chests/chest{self.id}.png'
 
-class ChestItem(models.Model):
-    chest = models.ForeignKey(Chest, on_delete=models.CASCADE)
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
 class SavedGameState(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Associer la sauvegarde à l'utilisateur
@@ -280,3 +347,13 @@ class SavedGameState(models.Model):
         ])
         self.save()
 
+class TileSavedState(models.Model):
+    tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
+    visited = models.BooleanField(default=False)
+    # Add fields for items, monsters, etc. on the tile (optional)
+
+class NPCSavedState(models.Model):
+    pnj = models.ForeignKey(NPC, on_delete=models.CASCADE)
+    hp = models.IntegerField()
+    tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
+    # Add fields for PNJ state (e.g., position, behavior, etc.) (optional)

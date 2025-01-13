@@ -30,7 +30,7 @@ class MoveAction(BaseAction):
         direction = self.request_data.get('direction')
         current_tile = self.character.current_tile
 
-        # Déterminer la tuile cible en fonction de la direction
+        # Vérifier la porte et la destination
         if direction == 'north':
             target_tile = current_tile.north_door
         elif direction == 'south':
@@ -39,11 +39,26 @@ class MoveAction(BaseAction):
             target_tile = current_tile.east_door
         elif direction == 'west':
             target_tile = current_tile.west_door
-
-        if target_tile and target_tile.id == 1:  # Vérifier si la porte est ouverte (ID = 1)
-            self.character.current_tile = target_tile
-            self.character.save()
-            self.character.save_game_state()
-            return {"success": "Character moved", "new_position": {"posX": target_tile.posX, "posY": target_tile.posY}}
         else:
-            return {"error": "Invalid move"}
+            raise ValueError("Invalid direction")
+
+        if not target_tile:
+            return {"error": f"No tile in the {direction} direction"}
+
+        # Vérifier si la tuile de destination est accessible (exemple de vérification)
+        if target_tile.is_blocked:
+            return {"error": "The path is blocked"}
+
+        # Vérifier si la porte est ouverte (vous pouvez personnaliser cette logique)
+        if target_tile.door_is_locked:
+            return {"error": "The door is locked"}
+
+        # Déplacer le personnage
+        self.character.current_tile = target_tile
+        self.character.save()
+        self.character.save_game_state()
+
+        # Gérer les événements liés au déplacement (optionnel)
+        self.trigger_events(target_tile)
+
+        return {"success": "Character moved", "new_position": {"posX": target_tile.posX, "posY": target_tile.posY}}

@@ -48,7 +48,7 @@ def add_initial_data(apps, schema_editor):
     CharacterClass = apps.get_model('api', 'CharacterClass')
     Tile = apps.get_model('api', 'Tile')
     Skill = apps.get_model('api', 'Skill')
-    Monster = apps.get_model('api', 'Monster')
+    PNJ = apps.get_model('api', 'PNJ')
     Item = apps.get_model('api', 'Item')
     Shop = apps.get_model('api', 'Shop')
     ShopItem = apps.get_model('api', 'ShopItem')
@@ -107,7 +107,7 @@ def add_initial_data(apps, schema_editor):
 
 
 # Création de monstres avec tous les champs requis
-    monster1 = Monster.objects.create(
+    monster1 = PNJ.objects.create(
         name='Skeleton Warrior',
         hp=1,
         tile=Tile.objects.get(link_world=world1.id, posX=1, posY=0),
@@ -118,7 +118,7 @@ def add_initial_data(apps, schema_editor):
     #monster1.image = Image.objects.create(path='assets/images/monsters/skeleton.png', description='Image du monstre Skeleton')
     #monster1.save()
 
-    monster2 = Monster.objects.create(
+    monster2 = PNJ.objects.create(
         name='Goblin Thief',
         hp=5,
         tile=Tile.objects.get(link_world=world1.id, posX=2, posY=0),
@@ -129,7 +129,7 @@ def add_initial_data(apps, schema_editor):
 
 
     # Création d'autres monstres
-    monster3 = Monster.objects.create(
+    monster3 = PNJ.objects.create(
         name='Red Slime',
         hp=3,
         tile=Tile.objects.get(link_world=world1.id, posX=2, posY=1),
@@ -139,7 +139,7 @@ def add_initial_data(apps, schema_editor):
     )
 
 
-    monster4 = Monster.objects.create(
+    monster4 = PNJ.objects.create(
         name='Fire Dragon',
         hp=100,
         tile=Tile.objects.get(link_world=world2.id, posX=4, posY=3),
