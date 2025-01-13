@@ -17,7 +17,7 @@ class MoveAction(BaseAction):
             raise ValueError("Invalid direction")
 
         # Vérifier si la tuile actuelle a une porte dans la direction indiquée
-        current_tile = self.character.current_tile
+        current_tile = self.game.current_tile
         door_field = f"{direction}_door_id"
         if not getattr(current_tile, door_field): 
             raise ValueError(f"No door in the {direction} direction")
@@ -28,7 +28,7 @@ class MoveAction(BaseAction):
 
     def execute(self):
         direction = self.request_data.get('direction')
-        current_tile = self.character.current_tile
+        current_tile = self.game.current_tile
 
         # Vérifier la porte et la destination
         if direction == 'north':
@@ -54,9 +54,9 @@ class MoveAction(BaseAction):
             return {"error": "The door is locked"}
 
         # Déplacer le personnage
-        self.character.current_tile = target_tile
-        self.character.save()
-        self.character.save_game_state()
+        self.game.current_tile = target_tile
+        self.game.save()
+        self.game.save_game_state()
 
         # Gérer les événements liés au déplacement (optionnel)
         self.trigger_events(target_tile)

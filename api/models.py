@@ -31,10 +31,10 @@ class Tile(models.Model):
   
     
     # Méthode pour changer de monde
-    def change_map(self, character):
+    def change_map(self, game):
         if self.portal_to_map:
-            character.map = self.portal_to_map
-            character.save()
+            game.map = self.portal_to_map
+            game.save()
 
     
 class CharacterClass(models.Model):  # New model for character classes
@@ -75,7 +75,7 @@ class Item(models.Model):
 
     def get_image_path(self):
         return f'/img/Items/item{self.id}.png'
-class Character(models.Model):
+class Game(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
     name = models.CharField(max_length=255)
     Map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True)
@@ -83,7 +83,7 @@ class Character(models.Model):
     attack_power = models.PositiveIntegerField(default=1)
 
     hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
-    current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='character')  # Optional current tile
+    current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game')  # Optional current tile
     inventory = models.ManyToManyField('Item', through='CharacterInventory')
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
@@ -99,40 +99,40 @@ class Character(models.Model):
         # Serialize character data and store it in the session
         session = Session.objects.get_or_create(expire_date=timezone.now() + datetime.timedelta(days=1))[0]  # Create or get session
         self.session_key = session
-        character_data = {
+        game_data = {
             'name': self.name,
             'current_tile': self.current_tile.id if self.current_tile else None,
             'inventory': [item.id for item in self.characterinventory_set.all()],  # Get inventory item IDs
         }
-        session.session_data['character_data'] = json.dumps(character_data)  # Serialize data to JSON
+        session.session_data['game_data'] = json.dumps(game_data)  # Serialize data to JSON
         session.save()
         self.save()  # Save character with updated session key
 
     def load_game_state(self):
         # Check if a session exists with character data
         session = self.session_key
-        if session and 'character_data' in session.session_data:
-            character_data = json.loads(session.session_data['character_data'])
-            self.current_tile = Tile.objects.get(pk=character_data['current_tile']) if character_data['current_tile'] else None
+        if session and 'game_data' in session.session_data:
+            game_data = json.loads(session.session_data['game_data'])
+            self.current_tile = Tile.objects.get(pk=game_data['current_tile']) if game_data['current_tile'] else None
             # Load inventory items based on retrieved IDs (consider using bulk operations for efficiency)
             self.characterinventory_set.clear()  # Clear existing inventory before loading
-            for item_id in character_data['inventory']:
+            for item_id in game_data['inventory']:
                 item = Item.objects.get(pk=item_id)
-                CharacterInventory.objects.create(character=self, item=item)
+                CharacterInventory.objects.create(game=self, item=item)
         else:
             print("No saved game state found")
 
     def save(self, *args, **kwargs):
         # Limiter le nombre de sauvegardes à 5 par utilisateur
-        existing_saves = Character.objects.filter(user=self.user).count()
+        existing_saves = Game.objects.filter(user=self.user).count()
         if existing_saves >= 5 and self.pk is None:  # self.pk is None signifie que c'est une nouvelle sauvegarde
             raise ValueError("Maximum number of saves reached (5)")
         super().save(*args, **kwargs)
 
-    def save_from_character(self, character):
-        self.current_tile = character.current_tile
+    def save_from_game(self, game):
+        self.current_tile = game.current_tile
         self.inventory_data = json.dumps([  # Serialize inventory item IDs
-            item.id for item in character.characterinventory_set.all()
+            item.id for item in game.characterinventory_set.all()
         ])
         self.save()
 
@@ -258,7 +258,7 @@ class Skill(models.Model):
     
     
 class CharacterSkill(models.Model):
-    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
     level = models.PositiveIntegerField(default=1)  # Niveau de compétence
     experience = models.PositiveIntegerField(default=0)  # Expérience pour monter de niveau
@@ -266,7 +266,7 @@ class CharacterSkill(models.Model):
 
 
 class CharacterInventory(models.Model):
-    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     is_equipped = models.BooleanField(default=False)
@@ -304,7 +304,7 @@ class NPC(models.Model):
 class Dialogue(models.Model):
     text = models.TextField()
     NPC = models.ForeignKey(NPC, on_delete=models.CASCADE)
-    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     def get_image_path(self):
         return f'assets/images/dialogues/dialogue{self.id}.png'
 

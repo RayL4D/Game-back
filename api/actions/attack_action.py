@@ -3,7 +3,7 @@ from ..models import NPC, CharacterInventory, Item
 from rest_framework import status
 from rest_framework.response import Response
 from random import randint
-from ..serializers import ItemSerializer, CharacterSerializer
+from ..serializers import ItemSerializer, GameSerializer
 
 
 class AttackAction(BaseAction):
@@ -17,7 +17,7 @@ class AttackAction(BaseAction):
             raise ValueError("Invalid direction")
 
         # Check if a tile exists in the indicated direction
-        current_tile = self.character.current_tile
+        current_tile = self.game.current_tile
         target_tile = getattr(current_tile, f"{direction}_door")
         if target_tile is None:
             raise ValueError("No tile in that direction")
@@ -31,16 +31,16 @@ class AttackAction(BaseAction):
 
     def execute(self):
         direction = self.request_data.get('direction')
-        current_tile = self.character.current_tile
+        current_tile = self.game.current_tile
         target_tile = getattr(current_tile, f"{direction}_door")
         npc = NPC.objects.get(tile=target_tile)
 
         # Calculate base damage
-        base_damage = self.character.attack_power
+        base_damage = self.game.attack_power
 
         # Consider equipped weapon damage
         equipped_weapon = CharacterInventory.objects.filter(
-            character=self.character,
+            game=self.game,
             item__item_type='Weapon',
             item__is_equipped=True
         ).first()
@@ -51,22 +51,22 @@ class AttackAction(BaseAction):
 
 
         # Calculate total damage
-        base_damage = self.character.attack_power
+        base_damage = self.game.attack_power
 
         # Critical hit chance
-        critical_hit_chance = self.character.critical_hit_chance
+        critical_hit_chance = self.game.critical_hit_chance
 
         # Miss chance
-        miss_chance = self.character.miss_chance
+        miss_chance = self.game.miss_chance
 
         # Roll for critical hit, miss, or normal hit
         attack_roll = randint(1, 100)
 
-        if attack_roll <= self.character.critical_hit_chance:
+        if attack_roll <= self.game.critical_hit_chance:
             # Critical hit! Double the damage
             total_damage *= 2
             result = "Critical hit!"
-        elif attack_roll <= self.character.critical_hit_chance + self.character.miss_chance:
+        elif attack_roll <= self.game.critical_hit_chance + self.game.miss_chance:
             # Miss! No damage dealt
             total_damage = 0
             result = "Miss!"
@@ -83,14 +83,14 @@ class AttackAction(BaseAction):
             npc.save()
             # Calculer les dégâts de l'attaque du PNJ
             npc_damage = npc.attack_power
-            self.character.hp -= npc_damage
-            self.character.save()
+            self.game.hp -= npc_damage
+            self.game.save()
         
         if npc.hp <= 0:
             npc.delete()
             # Gain experience (optional, adjust as needed)
-            self.character.experience += npc.experience
-            self.character.save()
+            self.game.experience += npc.experience
+            self.game.save()
 
             # Rewards (simple example)
             gold_reward = randint(1, 10)  # Random gold reward
@@ -112,7 +112,7 @@ class AttackAction(BaseAction):
             return {
                 "success": result,
                 "npc_hp": npc.hp,
-                "character_hp": self.character.hp,
+                "character_hp": self.game.hp,
             }
 
 
@@ -120,11 +120,11 @@ class AttackAction(BaseAction):
         if result.get('error'):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         else:
-            serializer = CharacterSerializer(self.character)
+            serializer = GameSerializer(self.game)
             response_data = serializer.data
             # Add details of the equipped weapon to the response
             equipped_weapon = CharacterInventory.objects.filter(
-                character=self.character,
+                game=self.game,
                 item__item_type='Weapon',
                 item__is_equipped=True
             ).first()

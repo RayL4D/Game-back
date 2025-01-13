@@ -11,16 +11,16 @@ class HealAction(BaseAction):
     def execute(self):
         # Logique de soin avec potion
         potion = CharacterInventory.objects.filter(
-            character=self.character,
+            game=self.game,
             item__item_type='Potion'
         ).first()
 
         if potion:
             potion_stats = potion.item.stats
             healing_amount = potion_stats.get('healing', 0)
-            self.character.hp += healing_amount
-            self.character.hp = min(self.character.hp, self.character.get_default_hp())  # Limiter les HP au maximum
-            self.character.save()
+            self.game.hp += healing_amount
+            self.game.hp = min(self.game.hp, self.game.get_default_hp())  # Limiter les HP au maximum
+            self.game.save()
             potion.delete()  # Supprimer la potion après utilisation
             return {"success": "Character healed", "healing_amount": healing_amount}
         else:
