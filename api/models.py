@@ -11,14 +11,14 @@ import json
 # Create your models here.
     
 class Map(models.Model):  # Added model for Map
-    name = models.CharField(max_length=255, unique=True)  # Ensure unique world names
-    description = models.TextField(blank=True)  # Optional world description
+    name = models.CharField(max_length=255, unique=True)  # Ensure unique map names
+    description = models.TextField(blank=True)  # Optional map description
 
     def get_image_path(self):
         return f'/img/Map/map{self.id}.png'
 
 class Tile(models.Model):
-    map_id= models.ForeignKey(Map, on_delete=models.CASCADE, null=True, blank=True)
+    map= models.ForeignKey(Map, on_delete=models.CASCADE, null=True, blank=True)
     posX = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     posY = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     visited = models.BooleanField(default=False)  # Flag to track if the tile has been visited
@@ -26,14 +26,14 @@ class Tile(models.Model):
     south_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='south_connected_tile')
     east_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='east_connected_tile')
     west_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='west_connected_tile')
-    portal_to_world = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
+    portal_to_map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
     # Add fields for items in the tile (consider a separate model for items in tiles)
   
     
     # Méthode pour changer de monde
-    def change_world(self, character):
-        if self.portal_to_world:
-            character.world = self.portal_to_world
+    def change_map(self, character):
+        if self.portal_to_map:
+            character.map = self.portal_to_map
             character.save()
 
     
@@ -174,7 +174,7 @@ class Character(models.Model):
         if creating:
             # Set default values for new characters
             self.map = Map.objects.first()  # Set the starting map
-            self.current_tile = Tile.objects.filter(link_world=self.map).first()
+            self.current_tile = Tile.objects.filter(link_map=self.map).first()
             self.hp = self.get_default_hp()  # Set HP based on character class
 
 
@@ -191,7 +191,7 @@ class Character(models.Model):
     def respawn(self):
         # Logique de réapparition
         self.hp = self.get_default_hp()  # Réinitialiser les HP 
-        self.current_tile = Tile.objects.filter(link_world=self.map).first()
+        self.current_tile = Tile.objects.filter(link_map=self.map).first()
         self.save()
         # Vous pouvez également réinitialiser d'autres aspects du personnage ici si nécessaire
 
