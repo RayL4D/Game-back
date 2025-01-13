@@ -154,6 +154,15 @@ class CharacterViewSet(viewsets.ModelViewSet):
         except Exception as e:  # Capturez les exceptions potentielles lors de la création de la sauvegarde
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)      
         
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def get_saved_games(self, request):
+        saved_games = self.get_queryset()  # Filtrer les sauvegardes de l'utilisateur
+        serializer = self.get_serializer(saved_games, many=True)
+        return Response(serializer.data)
+    
 class CharacterClassViewSet(viewsets.ModelViewSet):
     queryset = CharacterClass.objects.all()
     serializer_class = CharacterClassSerializer
@@ -201,17 +210,5 @@ class ShopItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class SavedGameStateViewSet(viewsets.ModelViewSet):
-    queryset = SavedGameState.objects.all()
-    serializer_class = SavedGameStateSerializer
-    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
-
-    @action(detail=False, methods=['get'])
-    def get_saved_games(self, request):
-        saved_games = self.get_queryset()  # Filtrer les sauvegardes de l'utilisateur
-        serializer = self.get_serializer(saved_games, many=True)
-        return Response(serializer.data)
     

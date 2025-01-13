@@ -88,6 +88,7 @@ class Character(models.Model):
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)  # Date de création de la partie
     updated_at = models.DateTimeField(auto_now=True)  # Date de la dernière mise à jour
+    
     primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
     secondary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_secondary_weapon')
     critical_hit_chance = models.IntegerField(default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
@@ -119,6 +120,20 @@ class Character(models.Model):
                 CharacterInventory.objects.create(character=self, item=item)
         else:
             print("No saved game state found")
+
+    def save(self, *args, **kwargs):
+        # Limiter le nombre de sauvegardes à 5 par utilisateur
+        existing_saves = Character.objects.filter(user=self.user).count()
+        if existing_saves >= 5 and self.pk is None:  # self.pk is None signifie que c'est une nouvelle sauvegarde
+            raise ValueError("Maximum number of saves reached (5)")
+        super().save(*args, **kwargs)
+
+    def save_from_character(self, character):
+        self.current_tile = character.current_tile
+        self.inventory_data = json.dumps([  # Serialize inventory item IDs
+            item.id for item in character.characterinventory_set.all()
+        ])
+        self.save()
 
     def equip_starting_gear(self):
         starting_weapon = Item.objects.filter(name="Iron Sword").first()
@@ -244,6 +259,8 @@ class Skill(models.Model):
 class CharacterSkill(models.Model):
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
+    level = models.PositiveIntegerField(default=1)  # Niveau de compétence
+    experience = models.PositiveIntegerField(default=0)  # Expérience pour monter de niveau
     # Add fields for skill level, effects, etc. (optional)
 
 class Item(models.Model):
@@ -263,6 +280,7 @@ class Item(models.Model):
     description = models.TextField(blank=True)  # Optional item description
     stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
     damage = models.PositiveIntegerField(default=0)  # Dégâts supplémentaires de l'arme
+    armor = models.PositiveIntegerField(default=0)
 
     def get_image_path(self):
         return f'/img/Items/item{self.id}.png'
@@ -323,29 +341,6 @@ class ShopItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     price = models.PositiveIntegerField(default=0)  # Price of the item in the shop
 
-
-
-class SavedGameState(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Associer la sauvegarde à l'utilisateur
-    character = models.ForeignKey(Character, on_delete=models.CASCADE)
-    current_tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
-    inventory_data = models.TextField(blank=True)
-    save_name = models.CharField(max_length=255)  # Nom de la sauvegarde (facultatif)
-    created_at = models.DateTimeField(auto_now_add=True)  # Date de création de la sauvegarde
-
-    def save(self, *args, **kwargs):
-        # Limiter le nombre de sauvegardes à 5 par utilisateur
-        existing_saves = SavedGameState.objects.filter(user=self.user).count()
-        if existing_saves >= 5 and self.pk is None:  # self.pk is None signifie que c'est une nouvelle sauvegarde
-            raise ValueError("Maximum number of saves reached (5)")
-        super().save(*args, **kwargs)
-        
-    def save_from_character(self, character):
-        self.current_tile = character.current_tile
-        self.inventory_data = json.dumps([  # Serialize inventory item IDs
-            item.id for item in character.characterinventory_set.all()
-        ])
-        self.save()
 
 class TileSavedState(models.Model):
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
