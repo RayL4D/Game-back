@@ -10,12 +10,12 @@ import json
 
 # Create your models here.
     
-class Map(models.Model):  # Added model for World
+class Map(models.Model):  # Added model for Map
     name = models.CharField(max_length=255, unique=True)  # Ensure unique world names
     description = models.TextField(blank=True)  # Optional world description
 
     def get_image_path(self):
-        return f'/img/World/world{self.id}.png'
+        return f'/img/Map/map{self.id}.png'
 
 class Tile(models.Model):
     map_id= models.ForeignKey(Map, on_delete=models.CASCADE, null=True, blank=True)
@@ -71,6 +71,7 @@ class Item(models.Model):
     description = models.TextField(blank=True)  # Optional item description
     stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
     damage = models.PositiveIntegerField(default=0)  # Dégâts supplémentaires de l'arme
+    armor = models.PositiveIntegerField(default=0)
 
     def get_image_path(self):
         return f'/img/Items/item{self.id}.png'
@@ -86,7 +87,7 @@ class Character(models.Model):
     inventory = models.ManyToManyField('Item', through='CharacterInventory')
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)  # Date de création de la partie
+    created_at = models.DateTimeField(default=datetime.datetime.now)
     updated_at = models.DateTimeField(auto_now=True)  # Date de la dernière mise à jour
     
     primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
@@ -263,35 +264,12 @@ class CharacterSkill(models.Model):
     experience = models.PositiveIntegerField(default=0)  # Expérience pour monter de niveau
     # Add fields for skill level, effects, etc. (optional)
 
-class Item(models.Model):
-    name = models.CharField(max_length=255)
-    item_type = models.CharField(max_length=255, choices=[
-        ('Weapon', 'Weapon'),
-        ('Armor', 'Armor'),
-        ('Potion', 'Potion'),
-        ('Consumable', 'Consumable'),
-        ('Quest', 'Quest'),
-        ('Junk', 'Junk'),
-        ('Manuscript', 'Manuscript'),
-        ('Gold', 'Gold'),
-        ('Silver', 'Silver'),
-        ('Bronze', 'Bronze'),
-        ])
-    description = models.TextField(blank=True)  # Optional item description
-    stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
-    damage = models.PositiveIntegerField(default=0)  # Dégâts supplémentaires de l'arme
-    armor = models.PositiveIntegerField(default=0)
-
-    def get_image_path(self):
-        return f'/img/Items/item{self.id}.png'
 
 class CharacterInventory(models.Model):
     character = models.ForeignKey(Character, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    is_equipped = models.BooleanField(default=False)  # New field
-
-
+    is_equipped = models.BooleanField(default=False)
     
 class NPC(models.Model):
     name = models.CharField(max_length=255)
@@ -315,6 +293,7 @@ class NPC(models.Model):
         ('Hostile', 'Hostile'),
     ])
     attack_power = models.PositiveIntegerField(default=1)
+    defense = models.PositiveIntegerField(default=1)
     experience = models.PositiveIntegerField(default=10)  # Exemple de valeur d'expérience
 
 

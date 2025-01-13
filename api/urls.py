@@ -30,7 +30,7 @@ schema_view = get_schema_view(
 
 router = DefaultRouter()
 router.register(r'user', views.UserViewSet)
-router.register(r'world', views.WorldViewSet)
+router.register(r'map', views.MapViewSet)
 router.register(r'character', views.CharacterViewSet)
 router.register(r'characterclass', views.CharacterClassViewSet, basename='characterclass')
 router.register(r'skill', views.SkillViewSet)
@@ -38,12 +38,9 @@ router.register(r'characterskill', views.CharacterSkillViewSet)
 router.register(r'item', views.ItemViewSet)
 router.register(r'characterinventory', views.CharacterInventoryViewSet)
 router.register(r'tile', views.TileViewSet)
-router.register(r'monster', views.MonsterViewSet)
+router.register(r'npc', views.NPCViewSet)
 router.register(r'shop', views.ShopViewSet)
 router.register(r'shopitem', views.ShopItemViewSet)
-router.register(r'chest', views.ChestViewSet)
-router.register(r'chestitem', views.ChestItemViewSet)
-router.register(r'savedgamestate', views.SavedGameStateViewSet)
 router.register(r'game/actions', GameActionsViewSet, basename='game-actions')
 
 

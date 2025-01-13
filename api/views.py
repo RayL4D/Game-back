@@ -3,8 +3,8 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets #,generics
-from .serializers import UserSerializer, MapSerializer, CharacterSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, PNJSerializer, ShopSerializer, ShopItemSerializer, SavedGameStateSerializer 
-from .models import  Map, Character, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, SavedGameState
+from .serializers import UserSerializer, MapSerializer, CharacterSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer 
+from .models import  Map, Character, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -136,7 +136,7 @@ class CharacterViewSet(viewsets.ModelViewSet):
             # Sérialiser les objets Item en JSON (vous pouvez personnaliser la sérialisation si besoin)
             inventory_data = serializers.serialize('json', inventory_items)
 
-            saved_game = SavedGameState.objects.create(
+            saved_game = Character.objects.create(
                 user=request.user,
                 character=character,
                 current_tile=character.current_tile,
@@ -145,7 +145,7 @@ class CharacterViewSet(viewsets.ModelViewSet):
             )
             print("SavedGameState créé :", saved_game)  
 
-            saved_game_serializer = SavedGameStateSerializer(saved_game)
+            saved_game_serializer = Character(saved_game)
             return Response(saved_game_serializer.data, status=status.HTTP_201_CREATED)
 
         except Character.DoesNotExist:
@@ -196,7 +196,7 @@ class TileViewSet(viewsets.ModelViewSet):
 
 class NPCViewSet(viewsets.ModelViewSet):
     queryset = NPC.objects.all()
-    serializer_class = PNJSerializer
+    serializer_class = NPCSerializer
     permission_classes = [IsAuthenticated]
 
 class ShopViewSet(viewsets.ModelViewSet):
