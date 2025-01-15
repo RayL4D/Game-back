@@ -13,9 +13,11 @@ import json
 class Map(models.Model):  # Added model for Map
     name = models.CharField(max_length=255, unique=True)  # Ensure unique map names
     description = models.TextField(blank=True)  # Optional map description
+    starting_map = models.BooleanField(default=False)  # Flag to indicate the starting map
 
     def get_image_path(self):
         return f'/img/Map/map{self.id}.png'
+
 
 class Tile(models.Model):
     map= models.ForeignKey(Map, on_delete=models.CASCADE, null=True, blank=True)
@@ -81,6 +83,7 @@ class Game(models.Model):
     Map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True)
     character_class = models.ForeignKey(CharacterClass, on_delete=models.SET_NULL, null=True)  # Dynamic class
     attack_power = models.PositiveIntegerField(default=1)
+    defense = models.PositiveIntegerField(default=1)
 
     hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
     current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game')  # Optional current tile
@@ -275,6 +278,7 @@ class NPC(models.Model):
     name = models.CharField(max_length=255)
     hp = models.PositiveIntegerField(default=1)  # Monsters should have at least 1 HP
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
+    is_dead = models.BooleanField(default=False)
     species = models.CharField(max_length=255, choices=[
         ('Human', 'Human'),
         ('Orc', 'Orc'),

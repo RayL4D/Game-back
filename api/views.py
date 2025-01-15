@@ -3,8 +3,8 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets #,generics
-from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer 
-from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem
+from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer 
+from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -17,7 +17,7 @@ from rest_framework.decorators import action
 from rest_framework import status
 from .actions.attack_action import AttackAction
 from .actions.take_action import TakeAction
-from .actions.move_action import MoveAction
+from .actions.move.move_action import MoveAction
 from django.core import serializers
 
 class GameActionsViewSet(viewsets.ViewSet):
@@ -210,5 +210,12 @@ class ShopItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-
+class TileSavedStateViewSet(viewsets.ModelViewSet):
+    queryset = TileSavedState.objects.all()
+    serializer_class = TileSavedStateSerializer
+    permission_classes = [IsAuthenticated]
     
+class NPCSavedStateViewSet(viewsets.ModelViewSet):
+    queryset = NPCSavedState.objects.all()
+    serializer_class = NPCSavedStateSerializer
+    permission_classes = [IsAuthenticated]

@@ -23,5 +23,5 @@ class BaseAction:
         if result.get('error'):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         else:
-            serializer = GameSerializer(self.game)  # Assurez-vous d'avoir un CharacterSerializer
+            serializer = GameSerializer(self.game)
             return Response(serializer.data)

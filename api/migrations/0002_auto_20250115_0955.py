@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-def create_tiles_for_map(apps, map_id, grid_size):
+def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=None):
     Tile = apps.get_model('api', 'Tile')
     Map = apps.get_model('api', 'Map')
     map = Map.objects.get(pk=map_id)
@@ -14,15 +14,15 @@ def create_tiles_for_map(apps, map_id, grid_size):
             tile = Tile.objects.create(map=map, posX=x, posY=y)
             tiles[(x, y)] = tile
             
-            # Si c'est la dernière tuile, définir le portail vers le monde suivant
-            if x == grid_size - 1 and y == grid_size - 1:
-                next_map_id = map.id + 1
+          # Set portal if specified and coordinates match
+            if next_map_portal_tile_coords and (x, y) == next_map_portal_tile_coords:
                 try:
-                    next_map = Map.objects.get(pk=next_map_id)
+                    next_map = Map.objects.get(pk=map.id + 1)
                     tile.portal_to_map = next_map
                 except Map.DoesNotExist:
-                    pass  # Pas de monde suivant, donc pas de portail
-                tile.save()
+                    pass  # No next map, so ignore portal
+
+            tile.save()
 
     # Connecter les tuiles horizontalement et verticalement
     for y in range(grid_size):
@@ -49,10 +49,12 @@ def add_initial_data(apps, schema_editor):
     ShopItem = apps.get_model('api', 'ShopItem')
 
     # Création de mondes
-    map1 = Map.objects.create(name='Land of the Ancients', description='A mysterious world filled with ancient magic.')
-    map2 = Map.objects.create(name='Dragon Kingdom', description='A kingdom where dragons rule supreme.')
-    map3 = Map.objects.create(name='Whispering Wilds', description='An untamed expanse of primal forests teeming with life and hidden dangers.')
-    map4 = Map.objects.create(name='Sunken City of Stars', description='A submerged metropolis, bathed in an ethereal glow, where forgotten technology hums beneath the waves.')
+    map1a = Map.objects.create(name='Land of the Ancients', description='A mysterious world filled with ancient magic.', starting_map=True)
+    map2a = Map.objects.create(name='Dragon Kingdom', description='A kingdom where dragons rule supreme.')
+    map3a = Map.objects.create(name='Whispering Wilds', description='An untamed expanse of primal forests teeming with life and hidden dangers.')
+    map4a = Map.objects.create(name='Sunken City of Stars', description='A submerged metropolis, bathed in an ethereal glow, where forgotten technology hums beneath the waves.')
+
+    map1b = Map.objects.create(name='The Abyss', description='A dark and foreboding realm where unspeakable horrors lurk.', starting_map=True)
 
     # Création de classes de personnages
     characterclass1 = CharacterClass.objects.create(name='Warrior', description='The warrior stands as a paragon of strength and defense. With Heroic Strike to unleash powerful attacks and Shield Bash to disrupt and stun enemies, they dominate the battlefield with unwavering might and tactical prowess.')
@@ -62,10 +64,12 @@ def add_initial_data(apps, schema_editor):
     characterclass5 = CharacterClass.objects.create(name='Priest', description='The Priest is a master of restorative and radiant magic. With his Heal spell for restoring health and Holy Light to smite enemies with divine power, he supports allies and vanquishes foes with unparalleled brilliance.')
 
     # Créer des tuiles pour chaque monde
-    create_tiles_for_map(apps, map1.id, 3)
-    create_tiles_for_map(apps, map2.id, 5)
-    create_tiles_for_map(apps, map3.id, 10)
-    create_tiles_for_map(apps, map4.id, 4)
+    create_tiles_for_map(apps, map1a.id, 3, next_map_portal_tile_coords=(2, 1))
+    create_tiles_for_map(apps, map2a.id, 5, next_map_portal_tile_coords=(4, 0))
+    create_tiles_for_map(apps, map3a.id, 10, next_map_portal_tile_coords=(9, 4))
+    create_tiles_for_map(apps, map4a.id, 4)
+
+    create_tiles_for_map(apps, map1b.id, 3)
 
     # Création de compétences
     descriptions = {
@@ -88,7 +92,7 @@ def add_initial_data(apps, schema_editor):
     monster1 = NPC.objects.create(
         name='Skeleton Warrior',
         hp=1,
-        tile=Tile.objects.get(map=map1, posX=1, posY=0),
+        tile=Tile.objects.get(map=map1a, posX=1, posY=0),
         species='Undead',
         role='Enemy',
         behaviour='Hostile',
@@ -100,7 +104,7 @@ def add_initial_data(apps, schema_editor):
     monster2 = NPC.objects.create(
         name='Goblin Thief',
         hp=5,
-        tile=Tile.objects.get(map=map1, posX=2, posY=0),
+        tile=Tile.objects.get(map=map1a, posX=2, posY=0),
         species='Goblin',
         role='Enemy',
         behaviour='Hostile',
@@ -112,7 +116,7 @@ def add_initial_data(apps, schema_editor):
     monster3 = NPC.objects.create(
         name='Red Slime',
         hp=3,
-        tile=Tile.objects.get(map=map1, posX=2, posY=1),
+        tile=Tile.objects.get(map=map1a, posX=2, posY=1),
         species='Beast',
         role='Enemy',
         behaviour='Hostile',
@@ -124,7 +128,7 @@ def add_initial_data(apps, schema_editor):
     monster4 = NPC.objects.create(
         name='Fire Dragon',
         hp=100,
-        tile=Tile.objects.get(map=map2, posX=4, posY=3),
+        tile=Tile.objects.get(map=map2a, posX=4, posY=3),
         species='Dragon',
         role='Boss',
         behaviour='Hostile',
@@ -151,13 +155,13 @@ def add_initial_data(apps, schema_editor):
     # Création de magasins
     alchemy_shop = Shop.objects.create(
         name='Alchemy Shop',
-        tile=Tile.objects.get(map=map1, posX=0, posY=2),
+        tile=Tile.objects.get(map=map1a, posX=0, posY=2),
     )
     ShopItem.objects.create(shop=alchemy_shop, item=potion, price=15)
 
     equipment_shop = Shop.objects.create(
         name='Starforge Armory',
-        tile=Tile.objects.get(map=map2, posX=1, posY=3),
+        tile=Tile.objects.get(map=map2a, posX=1, posY=3),
     )
     armor = Item.objects.create(
         name='Steel Armor',
@@ -169,7 +173,7 @@ def add_initial_data(apps, schema_editor):
 
     food_shop = Shop.objects.create(
         name='Enchanted Bakery',
-        tile=Tile.objects.get(map=map3, posX=4, posY=2),
+        tile=Tile.objects.get(map=map3a, posX=4, posY=2),
     )
     bread = Item.objects.create(
         name='Loaf of Enchanted Bread',
@@ -181,7 +185,7 @@ def add_initial_data(apps, schema_editor):
 
     manuscript_shop = Shop.objects.create(
         name='Arcane Archives',
-        tile=Tile.objects.get(map=map4, posX=2, posY=1),
+        tile=Tile.objects.get(map=map4a, posX=2, posY=1),
     )
     scroll = Item.objects.create(
         name='Scroll of Knowledge',
@@ -239,3 +243,5 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(add_initial_data),
     ]
+
+
