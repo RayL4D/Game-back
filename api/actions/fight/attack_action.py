@@ -1,39 +1,25 @@
-from .base_action import BaseAction
-from ..models import NPC, CharacterInventory, Item
+from ..base_action import BaseAction
+from ...models import NPC, CharacterInventory, Item
 from rest_framework import status
 from rest_framework.response import Response
 from random import randint
-from ..serializers import ItemSerializer, GameSerializer
+from ...serializers import ItemSerializer, GameSerializer
 
 
 class AttackAction(BaseAction):
     def validate(self):
-        direction = self.request_data.get('direction')
-        if not direction:
-            raise ValueError("Missing 'direction' parameter")
-
-        valid_directions = ['north', 'south', 'east', 'west']
-        if direction not in valid_directions:
-            raise ValueError("Invalid direction")
-
-        # Check if a tile exists in the indicated direction
         current_tile = self.game.current_tile
-        target_tile = getattr(current_tile, f"{direction}_door")
-        if target_tile is None:
-            raise ValueError("No tile in that direction")
 
         # Check if an NPC is present on the target tile
-        npc = NPC.objects.filter(tile=target_tile).first()
+        npc = NPC.objects.filter(tile=current_tile).first()
         if npc is None:
-            raise ValueError("No NPC to attack in that direction")
+            raise ValueError("No NPC to attack")
         if npc.behaviour == 'Friendly':
             raise ValueError("Cannot attack a friendly NPC")
 
     def execute(self):
-        direction = self.request_data.get('direction')
         current_tile = self.game.current_tile
-        target_tile = getattr(current_tile, f"{direction}_door")
-        npc = NPC.objects.get(tile=target_tile)
+        npc = NPC.objects.get(tile=current_tile)
 
         # Calculate base damage
         base_damage = self.game.attack_power

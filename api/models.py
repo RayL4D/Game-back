@@ -29,7 +29,6 @@ class Tile(models.Model):
     east_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='east_connected_tile')
     west_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='west_connected_tile')
     portal_to_map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
-    # Add fields for items in the tile (consider a separate model for items in tiles)
   
     
     # Méthode pour changer de monde
@@ -328,10 +327,14 @@ class ShopItem(models.Model):
 class TileSavedState(models.Model):
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     visited = models.BooleanField(default=False)
-    # Add fields for items, monsters, etc. on the tile (optional)
 
 class NPCSavedState(models.Model):
-    pnj = models.ForeignKey(NPC, on_delete=models.CASCADE)
+    npc = models.ForeignKey(NPC, on_delete=models.CASCADE)
     hp = models.IntegerField()
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
-    # Add fields for PNJ state (e.g., position, behavior, etc.) (optional)
+    behaviour = models.CharField(max_length=255, choices=[
+        ('Friendly', 'Friendly'),
+        ('Neutral', 'Neutral'),
+        ('Hostile', 'Hostile'),
+    ])
+    is_dead = models.BooleanField(default=False)
