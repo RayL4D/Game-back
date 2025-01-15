@@ -17,7 +17,7 @@ from rest_framework.decorators import action
 from rest_framework import status
 from .actions.attack_action import AttackAction
 from .actions.take_action import TakeAction
-from .actions.move.move_action import MoveAction
+from .actions.move.all_move import MoveAction
 from django.core import serializers
 
 class GameActionsViewSet(viewsets.ViewSet):
