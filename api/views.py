@@ -3,8 +3,8 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets #,generics
-from .serializers import UserSerializer, MapSerializer, CharacterSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer 
-from .models import  Map, Character, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem
+from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer 
+from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -17,7 +17,6 @@ from rest_framework.decorators import action
 from rest_framework import status
 from .actions.attack_action import AttackAction
 from .actions.take_action import TakeAction
-from .actions.move_action import MoveAction
 from django.core import serializers
 
 class GameActionsViewSet(viewsets.ViewSet):
@@ -27,16 +26,15 @@ class GameActionsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def perform_action(self, request):
-        character_id = request.data.get('character_id')
+        game_id = request.data.get('game_id')
         action_type = request.data.get('action_type')
 
         try:
-            character = Character.objects.get(pk=character_id, user=request.user)
-        except Character.DoesNotExist:
-            return Response({"error": "Character not found"}, status=status.HTTP_404_NOT_FOUND)
+            game = Game.objects.get(pk=game_id, user=request.user)
+        except Game.DoesNotExist:
+            return Response({"error": "Game not found"}, status=status.HTTP_404_NOT_FOUND)
 
         action_classes = {
-            'move': MoveAction,
             'attack': AttackAction,
             'take': TakeAction,
             # Ajoutez d'autres actions ici
@@ -44,7 +42,7 @@ class GameActionsViewSet(viewsets.ViewSet):
 
         action_class = action_classes.get(action_type)
         if action_class:
-            action = action_class(character, request.data)
+            action = action_class(game, request.data)
             action.validate()
             result = action.execute()
             return action.handle_response(result)
@@ -84,7 +82,7 @@ class MapViewSet(viewsets.ModelViewSet):
     serializer_class = MapSerializer
 
     @swagger_auto_schema(
-        operation_description="Obtient la liste des mondes ou crée un nouveau monde."
+        operation_description="Obtient la liste des map ou crée une nouvelle map."
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -93,17 +91,17 @@ class MapViewSet(viewsets.ModelViewSet):
 #   queryset = World.objects.all()
 #   serializer_class = WorldSerializer
 
-class CharacterViewSet(viewsets.ModelViewSet):
-    queryset = Character.objects.all()
-    serializer_class = CharacterSerializer
+class GameViewSet(viewsets.ModelViewSet):
+    queryset = Game.objects.all()
+    serializer_class = GameSerializer
     permission_classes = [IsAuthenticated]
 
     @action(detail=True, methods=['post'])
     def move(self, request, pk=None):
-        character = self.get_object()
+        game = self.get_object()
         direction = request.data.get('direction')
 
-        action = MoveAction(character, request.data)
+        action = MoveAction(game, request.data)
         action.validate()
         result = action.execute()
         return action.handle_response(result)
@@ -121,35 +119,35 @@ class CharacterViewSet(viewsets.ModelViewSet):
     def start_new_game(self, request):
         print("Données de la requête :", request.data)  
 
-        character_id = request.data.get('character_id')
+        game_id = request.data.get('game_id')
 
-        if not character_id:
+        if not game_id:
             return Response({"error": "L'ID du personnage est requis"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            character = Character.objects.get(id=character_id, user=request.user)  
-            print("Personnage récupéré :", character)  
+            game = Game.objects.get(id=game_id, user=request.user)  
+            print("Personnage récupéré :", game)  
 
             # Récupérer les objets Item de l'inventaire du personnage
-            inventory_items = character.inventory.all()
+            inventory_items = game.inventory.all()
             
             # Sérialiser les objets Item en JSON (vous pouvez personnaliser la sérialisation si besoin)
             inventory_data = serializers.serialize('json', inventory_items)
 
-            saved_game = Character.objects.create(
+            saved_game = Game.objects.create(
                 user=request.user,
-                character=character,
-                current_tile=character.current_tile,
+                game=game,
+                current_tile=game.current_tile,
                 inventory_data=inventory_data,  # Stocker les données d'inventaire sérialisées
                 save_name=request.data.get('save_name', '')
             )
             print("SavedGameState créé :", saved_game)  
 
-            saved_game_serializer = Character(saved_game)
+            saved_game_serializer = Game(saved_game)
             return Response(saved_game_serializer.data, status=status.HTTP_201_CREATED)
 
-        except Character.DoesNotExist:
-            return Response({"error": "Personnage non trouvé ou n'appartient pas à l'utilisateur"}, status=status.HTTP_404_NOT_FOUND)
+        except Game.DoesNotExist:
+            return Response({"error": "Partie non trouvé ou n'appartient pas à l'utilisateur"}, status=status.HTTP_404_NOT_FOUND)
     
         except Exception as e:  # Capturez les exceptions potentielles lors de la création de la sauvegarde
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)      
@@ -210,5 +208,12 @@ class ShopItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-
+class TileSavedStateViewSet(viewsets.ModelViewSet):
+    queryset = TileSavedState.objects.all()
+    serializer_class = TileSavedStateSerializer
+    permission_classes = [IsAuthenticated]
     
+class NPCSavedStateViewSet(viewsets.ModelViewSet):
+    queryset = NPCSavedState.objects.all()
+    serializer_class = NPCSavedStateSerializer
+    permission_classes = [IsAuthenticated]

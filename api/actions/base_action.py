@@ -2,11 +2,11 @@
 
 from rest_framework import status
 from rest_framework.response import Response
-from ..serializers import CharacterSerializer
+from ..serializers import GameSerializer
 
 class BaseAction:
-    def __init__(self, character, request_data):
-        self.character = character
+    def __init__(self, game, request_data):
+        self.game = game
         self.request_data = request_data
 
     def execute(self):
@@ -23,5 +23,5 @@ class BaseAction:
         if result.get('error'):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         else:
-            serializer = CharacterSerializer(self.character)  # Assurez-vous d'avoir un CharacterSerializer
+            serializer = GameSerializer(self.game)
             return Response(serializer.data)

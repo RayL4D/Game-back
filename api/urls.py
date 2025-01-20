@@ -31,7 +31,7 @@ schema_view = get_schema_view(
 router = DefaultRouter()
 router.register(r'user', views.UserViewSet)
 router.register(r'map', views.MapViewSet)
-router.register(r'character', views.CharacterViewSet)
+router.register(r'game', views.GameViewSet)
 router.register(r'characterclass', views.CharacterClassViewSet, basename='characterclass')
 router.register(r'skill', views.SkillViewSet)
 router.register(r'characterskill', views.CharacterSkillViewSet)
@@ -51,8 +51,8 @@ urlpatterns = [
     # Autres URL...
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('character/start_new_game/', views.CharacterViewSet.as_view({'post': 'start_new_game'}), name='start-new-game'),
-    path('character/load_game/', views.CharacterViewSet.as_view({'get': 'load_game'}), name='load_game'),
+    path('game/start_new_game/', views.GameViewSet.as_view({'post': 'start_new_game'}), name='start-new-game'),
+    path('game/load_game/', views.GameViewSet.as_view({'get': 'load_game'}), name='load_game'),
 
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

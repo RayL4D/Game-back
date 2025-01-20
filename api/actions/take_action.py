@@ -16,12 +16,12 @@ class TakeAction(BaseAction):
             raise ValueError("Invalid 'item_id' parameter")
 
         # Vérifier si l'objet existe sur la tuile actuelle
-        current_tile = self.character.current_tile
+        current_tile = self.game.current_tile
         if not Item.objects.filter(id=item_id, tile=current_tile).exists():
             raise ValueError("Item not found on this tile")
 
         # Vérifier si le personnage a déjà l'objet dans son inventaire
-        if CharacterInventory.objects.filter(character=self.character, item_id=item_id).exists():
+        if CharacterInventory.objects.filter(game=self.game, item_id=item_id).exists():
             raise ValueError("Item already in inventory")
 
     def execute(self):
@@ -29,18 +29,18 @@ class TakeAction(BaseAction):
         item = Item.objects.get(id=item_id)
 
         # Vérifier si l'inventaire est plein (20 objets différents maximum)
-        if self.character.inventory.count() >= 20 and not CharacterInventory.objects.filter(character=self.character, item=item).exists():
+        if self.game.inventory.count() >= 20 and not CharacterInventory.objects.filter(game=self.game, item=item).exists():
             return {"error": "Inventory is full"}
 
         try:
-            inventory_item = CharacterInventory.objects.get(character=self.character, item=item)
+            inventory_item = CharacterInventory.objects.get(game=self.game, item=item)
             # Vérifier si l'objet peut être empilé (10 exemplaires maximum)
             if inventory_item.quantity >= 10:
                 return {"error": "Cannot stack more of this item"}
             inventory_item.quantity += 1
             inventory_item.save()
         except CharacterInventory.DoesNotExist:
-            CharacterInventory.objects.create(character=self.character, item=item, quantity=1)
+            CharacterInventory.objects.create(game=self.game, item=item, quantity=1)
 
         # Supprimer l'objet de la tuile (si vous ne voulez pas qu'il reste là)
         item.tile = None

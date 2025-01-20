@@ -1,7 +1,7 @@
 #graphGEFXServer/api/serializers.py
 
 from rest_framework import serializers
-from .models import User, Map, Character, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem
+from .models import User, Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,11 +13,11 @@ class MapSerializer(serializers.ModelSerializer):
         model = Map
         fields = '__all__'
 
-class CharacterSerializer(serializers.ModelSerializer):
+class GameSerializer(serializers.ModelSerializer):
     character_class = serializers.PrimaryKeyRelatedField(queryset=CharacterClass.objects.all())
 
     class Meta:
-        model = Character
+        model = Game
         fields = '__all__'
 
     def create(self, validated_data):
@@ -25,30 +25,30 @@ class CharacterSerializer(serializers.ModelSerializer):
         default_map = Map.objects.first()
 
         if default_map:
-            character = Character.objects.create(
+            game = Game.objects.create(
                 user=self.context['request'].user,  # Utilisez request.user ici
                 character_class=character_class,
-                world=default_map,
+                map=default_map,
                 **validated_data
             )
 
-            print("Character created:", character)  # Afficher l'objet Character créé
-            print("Character class:", character.character_class)  # Vérifier si la classe est liée
+            print("Game created:", game)  # Afficher l'objet Character créé
+            print("Character class:", game.character_class)  # Vérifier si la classe est liée
 
     # Appliquer les paramètres par défaut après la création du personnage
-            character.hp = character.get_default_hp()
-            character.equip_starting_gear()
-            character.assign_class_skills()
+            game.hp = game.get_default_hp()
+            game.equip_starting_gear()
+            game.assign_class_skills()
 
-            print("Character HP after get_default_hp:", character.hp)  # Vérifier les HP
-            print("Character inventory after equip_starting_gear:", list(character.inventory.all()))  # Vérifier l'inventaire
-            print("Character skills after assign_class_skills:", list(character.skills.all()))  # Vérifier les compétences
+            print("Character HP after get_default_hp:", game.hp)  # Vérifier les HP
+            print("Character inventory after equip_starting_gear:", list(game.inventory.all()))  # Vérifier l'inventaire
+            print("Character skills after assign_class_skills:", list(game.skills.all()))  # Vérifier les compétences
 
-            character.save()
-            return character
+            game.save()
+            return game
 
         else:
-            raise serializers.ValidationError("Aucun monde disponible")
+            raise serializers.ValidationError("Aucune map disponible")
     
 class CharacterClassSerializer(serializers.ModelSerializer):
     image_path = serializers.SerializerMethodField()  # Champ calculé pour le chemin de l'image
@@ -119,3 +119,12 @@ class ShopItemSerializer(serializers.ModelSerializer):
         model = ShopItem
         fields = '__all__'
 
+class TileSavedStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TileSavedState
+        fields = '__all__'
+
+class NPCSavedStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NPCSavedState
+        fields = '__all__'
