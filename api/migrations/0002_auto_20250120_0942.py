@@ -142,15 +142,15 @@ def add_initial_data(apps, schema_editor):
         name='Iron Sword',
         item_type='Weapon',
         description='A basic iron sword for beginners.',
-        stats={'damage': 10},
+        attack_power = 1,
     )
 
     potion = Item.objects.create(
         name='Healing Potion',
         item_type='Potion',
         description='Restores health when consumed.',
-        stats={'healing': 20},
-    )
+        healing=10,    
+        )
 
     # Création de magasins
     alchemy_shop = Shop.objects.create(
@@ -167,7 +167,7 @@ def add_initial_data(apps, schema_editor):
         name='Steel Armor',
         item_type='Equipment',
         description='Provides excellent protection in battle.',
-        stats={'armor': 25},
+        defense=10,
     )
     ShopItem.objects.create(shop=equipment_shop, item=armor, price=100)
 
@@ -179,8 +179,8 @@ def add_initial_data(apps, schema_editor):
         name='Loaf of Enchanted Bread',
         item_type='Food',
         description='Restores a small amount of health and boosts energy.',
-        stats={'healing': 5, 'energy': 10},
-    )
+        healing=2,
+        )
     ShopItem.objects.create(shop=food_shop, item=bread, price=5)
 
     manuscript_shop = Shop.objects.create(
@@ -191,8 +191,7 @@ def add_initial_data(apps, schema_editor):
         name='Scroll of Knowledge',
         item_type='Manuscript',
         description='Contains ancient wisdom. Can be used to learn new skills.',
-        stats={'knowledge': 10},
-    )
+        )
     ShopItem.objects.create(shop=manuscript_shop, item=scroll, price=50)
 
     # Ajout d'objets au coffre
@@ -200,38 +199,37 @@ def add_initial_data(apps, schema_editor):
         name='Golden Amulet',
         item_type='Equipment',
         description='Enhances magical abilities.',
-        stats={'magic_power': 20},
-    )
+        
+        )
     starlight_gem = Item.objects.create(
         name='Starlight Gem',
         item_type='Gem',
         description='Radiant gemstone that glows softly.',
-        stats={'light_radius': 10},
+
     )
     scroll_of_wisdom = Item.objects.create(
         name='Scroll of Ancient Wisdom',
         item_type='Manuscript',
         description='Reveals forgotten spells and arcane knowledge.',
-        stats={'knowledge': 15},
+        
     )
 
     dragon_scale_armor = Item.objects.create(
         name='Dragon Scale Armor',
         item_type='Equipment',
         description='Exceptional protection crafted from dragon scales.',
-        stats={'armor': 30},
+        defense=20,
     )
     flameforged_sword = Item.objects.create(
         name='Flameforged Sword',
         item_type='Weapon',
         description='Imbued with dragonfire, cuts through steel.',
-        stats={'damage': 25},
+        attack_power=10,
     )
     ruby_of_dragon_breath = Item.objects.create(
         name="Ruby of Dragon's Breath",
         item_type='Gem',
         description='Grants fire-based abilities.',
-        stats={'fire_damage': 20},
     )
 
 class Migration(migrations.Migration):

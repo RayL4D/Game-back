@@ -1,17 +1,15 @@
-# api/actions/move_action.py
-
-from ..base_action import BaseAction
-from ...models import Tile, NPC
+from ..models import Tile, NPC
+from actions.base_action import BaseAction
 from rest_framework import status
 from rest_framework.response import Response
 
-class MoveAction(BaseAction):
+class NorthMove(BaseAction):
     def validate(self):
         direction = self.request_data.get('direction')
         if not direction:
             raise ValueError("Missing 'direction' parameter")
 
-        valid_directions = ['north', 'south', 'east', 'west']
+        valid_directions = ['north']
         if direction not in valid_directions:
             raise ValueError("Invalid direction")
 
@@ -27,23 +25,8 @@ class MoveAction(BaseAction):
         current_tile = self.game.current_tile
 
         # Vérifier la porte et la destination
-        #if direction == 'north':
-            #target_tile = current_tile.north_door
-        #elif direction == 'south':
-            #target_tile = current_tile.south_door
-        #elif direction == 'east':
-            #target_tile = current_tile.east_door
-        #elif direction == 'west':
-            #target_tile = current_tile.west_door
-        #else:
-            #raise ValueError("Invalid direction")
-        
-        # Simplification de la vérification des portes
-        if not getattr(current_tile, f'has_{direction}_door'):
-            return {"error": f"No door in the {direction} direction"}
-
-        # Récupération de la tuile cible en fonction de la direction
-        target_tile = getattr(current_tile, f'{direction}_door')
+        if direction == 'north':
+            target_tile = current_tile.north_door
 
         if not target_tile:
             return {"error": f"No tile in the {direction} direction"}
@@ -59,6 +42,7 @@ class MoveAction(BaseAction):
         # Vérifier s'il y a un PNJ sur la tuile actuelle
         if NPC.objects.filter(tile=current_tile).exists():
             return {"error": "You cannot move. There is an NPC on your current tile."}
+        
         # npc = NPC.objects.get(tile=current_tile)
         # return {"options": [
         #    {"text": "Parler", "action": "talk"},
@@ -78,4 +62,3 @@ class MoveAction(BaseAction):
                 "has_npcs": NPC.objects.filter(tile=target_tile).exists(),
             }
         }
-

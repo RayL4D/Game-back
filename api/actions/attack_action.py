@@ -1,13 +1,21 @@
-from ..base_action import BaseAction
-from ...models import NPC, CharacterInventory, Item
+from .base_action import BaseAction
+from ..models import NPC, CharacterInventory, Item
 from rest_framework import status
 from rest_framework.response import Response
 from random import randint
-from ...serializers import ItemSerializer, GameSerializer
+from ..serializers import ItemSerializer, GameSerializer
 
 
 class AttackAction(BaseAction):
     def validate(self):
+        attack = self.request_data.get('attack')
+        if not attack:
+            raise ValueError("Missing 'attack' parameter")
+    
+        valid_attack = ['attack_bare_hands']
+        if attack not in valid_attack:
+            raise ValueError("Invalid attack")
+        
         current_tile = self.game.current_tile
 
         # Check if an NPC is present on the target tile

@@ -64,38 +64,34 @@ class Item(models.Model):
         ('Quest', 'Quest'),
         ('Junk', 'Junk'),
         ('Manuscript', 'Manuscript'),
-        ('Gold', 'Gold'),
-        ('Silver', 'Silver'),
-        ('Bronze', 'Bronze'),
+        ('Key', 'Key'),
+        ('Money', 'Money'),
         ])
     is_equipped = models.BooleanField(default=False)
     description = models.TextField(blank=True)  # Optional item description
-    stats = models.JSONField(blank=True)  # Optional field for numerical stats (damage, armor, etc.)
-    damage = models.PositiveIntegerField(default=0)  # Dégâts supplémentaires de l'arme
-    armor = models.PositiveIntegerField(default=0)
+    attack_power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance d'attaque de l'arme
+    defense = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Valeur de défense de l'armure
+    healing = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Valeur de soin de la potion
 
     def get_image_path(self):
         return f'/img/Items/item{self.id}.png'
 class Game(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
     name = models.CharField(max_length=255)
-    Map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True)
+    map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True)
     character_class = models.ForeignKey(CharacterClass, on_delete=models.SET_NULL, null=True)  # Dynamic class
     attack_power = models.PositiveIntegerField(default=1)
     defense = models.PositiveIntegerField(default=1)
-
     hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
+    experience = models.PositiveIntegerField(default=0)  # Expérience pour monter de niveau
+
     current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game')  # Optional current tile
-    inventory = models.ManyToManyField('Item', through='CharacterInventory')
-    skills = models.ManyToManyField('Skill', through='CharacterSkill')
+    inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'item'))  # Specify the correct fields    skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     updated_at = models.DateTimeField(auto_now=True)  # Date de la dernière mise à jour
     
-    primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
-    secondary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_secondary_weapon')
-    critical_hit_chance = models.IntegerField(default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
-    miss_chance = models.IntegerField(default=5, validators=[MinValueValidator(0), MaxValueValidator(100)])
+
 
     def save_game_state(self):
         # Serialize character data and store it in the session
@@ -178,7 +174,8 @@ class Game(models.Model):
             self.map = Map.objects.first()  # Set the starting map
             self.current_tile = Tile.objects.filter(link_map=self.map).first()
             self.hp = self.get_default_hp()  # Set HP based on character class
-
+            self.attack_power = self.get_default_attack_power()
+            self.defense = self.get_default_defense()
 
         super().save(*args, **kwargs)  # Call the parent class's save method
 
@@ -208,32 +205,54 @@ class Game(models.Model):
         }
         return class_hp.get(self.character_class.name, 10)  # Utiliser self.character_class.name
     
-def equip_weapon(self, item):
-    if not item or not isinstance(item, Item):
-        return
+    def get_default_attack_power(self):
+        # Renvoie la puissance d'attaque par défaut en fonction de la classe du personnage.
+        class_stats = {
+            'Warrior': 12,  # Puissance d'attaque élevée pour les guerriers
+            'Mage': 8,     # Puissance d'attaque moyenne pour les mages
+            'Priest': 6,     # Faible puissance d'attaque pour les prêtres
+            'Hunter': 10,    # Bonne puissance d'attaque pour les chasseurs
+            'Rogue': 9,     # Bonne puissance d'attaque pour les rôdeurs
+        }
+        return class_stats.get(self.character_class.name, 1)
+    
+    def get_default_defense(self):
+        # Renvoie la défense par défaut en fonction de la classe du personnage.
+        class_stats = {
+            'Warrior': 8,     # Bonne défense pour les guerriers
+            'Mage': 4,     # Faible défense pour les mages
+            'Priest': 6,     # Défense moyenne pour les prêtres
+            'Hunter': 5,     # Défense moyenne pour les chasseurs
+            'Rogue': 7,     # Bonne défense pour les rôdeurs
+        }
+        return class_stats.get(self.character_class.name, 1)
+    
+    def equip_weapon(self, item):
+        if not item or not isinstance(item, Item):
+            return
 
-    if item.item_type != 'Weapon':
-        print(f"Cannot equip {item.name} as a weapon (wrong item type)")
-        return
+        if item.item_type != 'Weapon':
+            print(f"Cannot equip {item.name} as a weapon (wrong item type)")
+            return
 
-    # Unequip current weapon if necessary
-    if self.primary_weapon:
-        self.primary_weapon = None
-    elif self.secondary_weapon:
-        self.secondary_weapon = None
+        # Unequip current weapon if necessary
+        if self.primary_weapon:
+            self.primary_weapon = None
+        elif self.secondary_weapon:
+            self.secondary_weapon = None
 
-    # Equip the new weapon (check for empty slot)
-    if not self.primary_weapon:
-        self.primary_weapon = item
-    elif not self.secondary_weapon:
-        self.secondary_weapon = item
-    self.save()
+        # Equip the new weapon (check for empty slot)
+        if not self.primary_weapon:
+            self.primary_weapon = item
+        elif not self.secondary_weapon:
+            self.secondary_weapon = item
+        self.save()
 
-    # Update equipped flag in CharacterInventory (if applicable)
-    if hasattr(self, 'characterinventory_set'):
-        for entry in self.characterinventory_set.filter(item=item):
-            entry.is_equipped = True
-            entry.save()
+        # Update equipped flag in CharacterInventory (if applicable)
+        if hasattr(self, 'characterinventory_set'):
+            for entry in self.characterinventory_set.filter(item=item):
+                entry.is_equipped = True
+                entry.save()
 
 class Skill(models.Model):
     name = models.CharField(max_length=255)
@@ -263,7 +282,6 @@ class CharacterSkill(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
     level = models.PositiveIntegerField(default=1)  # Niveau de compétence
-    experience = models.PositiveIntegerField(default=0)  # Expérience pour monter de niveau
     # Add fields for skill level, effects, etc. (optional)
 
 
@@ -272,6 +290,8 @@ class CharacterInventory(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     is_equipped = models.BooleanField(default=False)
+    primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
+    secondary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_secondary_weapon')
     
 class NPC(models.Model):
     name = models.CharField(max_length=255)

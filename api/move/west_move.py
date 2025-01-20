@@ -1,15 +1,15 @@
-from ..base_action import BaseAction
-from ...models import Tile, NPC
+from ..models import Tile, NPC
+from actions.base_action import BaseAction
 from rest_framework import status
 from rest_framework.response import Response
 
-class SouthMove(BaseAction):
+class WestMove(BaseAction):
     def validate(self):
         direction = self.request_data.get('direction')
         if not direction:
             raise ValueError("Missing 'direction' parameter")
 
-        valid_directions = ['south']
+        valid_directions = ['west']
         if direction not in valid_directions:
             raise ValueError("Invalid direction")
 
@@ -25,8 +25,8 @@ class SouthMove(BaseAction):
         current_tile = self.game.current_tile
 
         # Vérifier la porte et la destination
-        if direction == 'south':
-            target_tile = current_tile.south_door
+        if direction == 'west':
+            target_tile = current_tile.west_door
 
         if not target_tile:
             return {"error": f"No tile in the {direction} direction"}

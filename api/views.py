@@ -15,9 +15,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
 from rest_framework import status
-from .actions.fight.attack_action import AttackAction
+from .actions.attack_action import AttackAction
 from .actions.take_action import TakeAction
-from .actions.move.all_move import MoveAction
 from django.core import serializers
 
 class GameActionsViewSet(viewsets.ViewSet):
@@ -36,7 +35,6 @@ class GameActionsViewSet(viewsets.ViewSet):
             return Response({"error": "Game not found"}, status=status.HTTP_404_NOT_FOUND)
 
         action_classes = {
-            'move': MoveAction,
             'attack': AttackAction,
             'take': TakeAction,
             # Ajoutez d'autres actions ici
