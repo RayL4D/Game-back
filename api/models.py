@@ -44,11 +44,11 @@ class CharacterClass(models.Model):  # New model for character classes
     def get_image_path(self):
         # Construit le chemin de l'image en fonction de la classe du personnage
         class_image_filename = {
-            'Warrior': 'Warrior1.png',
-            'Mage': 'Mage1.png',
-            'Priest': 'Priest1.png',
-            'Hunter': 'Hunter1.png',
-            'Rogue': 'Rogue1.png',
+            'CHARCN_00001': 'Warrior1.png',
+            'CHARCN_00002': 'Mage1.png',
+            'CHARCN_00005': 'Priest1.png',
+            'CHARCN_00003': 'Hunter1.png',
+            'CHARCN_00004': 'Rogue1.png',
 
             # ... autres correspondances de classes et d'images ...
         }
@@ -57,15 +57,15 @@ class CharacterClass(models.Model):  # New model for character classes
 class Item(models.Model):
     name = models.CharField(max_length=255)
     item_type = models.CharField(max_length=255, choices=[
-        ('Weapon', 'Weapon'),
-        ('Armor', 'Armor'),
-        ('Potion', 'Potion'),
-        ('Consumable', 'Consumable'),
-        ('Quest', 'Quest'),
-        ('Junk', 'Junk'),
-        ('Manuscript', 'Manuscript'),
-        ('Key', 'Key'),
-        ('Money', 'Money'),
+        ('ITMT_00001', 'ITMT_00001'),
+        ('ITMT_00002', 'ITMT_00002'),
+        ('ITMT_00003', 'ITMT_00003'),
+        ('ITMT_00004', 'ITMT_00004'),
+        ('ITMT_00005', 'ITMT_00005'),
+        ('ITMT_00006', 'ITMT_00006'),
+        ('ITMT_00007', 'ITMT_00007'),
+        ('ITMT_00008', 'ITMT_00008'),
+        ('ITMT_00009', 'ITMT_00009'),
         ])
     is_equipped = models.BooleanField(default=False)
     description = models.TextField(blank=True)  # Optional item description
@@ -135,7 +135,7 @@ class Game(models.Model):
         self.save()
 
     def equip_starting_gear(self):
-        starting_weapon = Item.objects.filter(name="Iron Sword").first()
+        starting_weapon = Item.objects.filter(name="ITMN_00001").first()
         if starting_weapon:
             self.primary_weapon = starting_weapon
             self.save()
@@ -145,11 +145,11 @@ class Game(models.Model):
         print("Assigning skills for class:", self.character_class.name)  # Vérification du nom de la classe
 
         class_skills = {
-            "Warrior": ["Heroic Strike", "Shield Bash"],
-            "Mage": ["Fireball", "Ice Bolt"],
-            "Rogue": ["Backstab", "Gouge"],
-            "Hunter": ["Aimed Shot", "Multi-Shot"],
-            "Priest": ["Heal", "Holy Light"],
+            "CHARCN_00001": ["SKLN_00001", "SKLN_00002"],
+            "CHARCN_00002": ["SKLN_00003", "SKLN_00004"],
+            "CHARCN_00004": ["SKLN_00005", "SKLN_00006"],
+            "CHARCN_00003": ["SKLN_00007", "SKLN_00008"],
+            "CHARCN_00005": ["SKLN_00009", "SKLN_00010"],
         }
     
     # Vérification si la classe existe dans le dictionnaire
@@ -197,33 +197,33 @@ class Game(models.Model):
     def get_default_hp(self):
         # Define default HP based on character class
         class_hp = {
-            'Warrior': 20,
-            'Mage': 12,
-            'Priest': 15,
-            'Hunter': 18,
-            'Rogue': 16,
+            'CHARCN_00001': 20,
+            'CHARCN_00002': 12,
+            'CHARCN_00005': 15,
+            'CHARCN_00003': 18,
+            'CHARCN_00004': 16,
         }
         return class_hp.get(self.character_class.name, 10)  # Utiliser self.character_class.name
     
     def get_default_attack_power(self):
         # Renvoie la puissance d'attaque par défaut en fonction de la classe du personnage.
         class_stats = {
-            'Warrior': 12,  # Puissance d'attaque élevée pour les guerriers
-            'Mage': 8,     # Puissance d'attaque moyenne pour les mages
-            'Priest': 6,     # Faible puissance d'attaque pour les prêtres
-            'Hunter': 10,    # Bonne puissance d'attaque pour les chasseurs
-            'Rogue': 9,     # Bonne puissance d'attaque pour les rôdeurs
+            'CHARCN_00001': 12,  # Puissance d'attaque élevée pour les guerriers
+            'CHARCN_00002': 8,     # Puissance d'attaque moyenne pour les mages
+            'CHARCN_00005': 6,     # Faible puissance d'attaque pour les prêtres
+            'CHARCN_00003': 10,    # Bonne puissance d'attaque pour les chasseurs
+            'CHARCN_00004': 9,     # Bonne puissance d'attaque pour les rôdeurs
         }
         return class_stats.get(self.character_class.name, 1)
     
     def get_default_defense(self):
         # Renvoie la défense par défaut en fonction de la classe du personnage.
         class_stats = {
-            'Warrior': 8,     # Bonne défense pour les guerriers
-            'Mage': 4,     # Faible défense pour les mages
-            'Priest': 6,     # Défense moyenne pour les prêtres
-            'Hunter': 5,     # Défense moyenne pour les chasseurs
-            'Rogue': 7,     # Bonne défense pour les rôdeurs
+            'CHARCN_00001': 8,     # Bonne défense pour les guerriers
+            'CHARCN_00002': 4,     # Faible défense pour les mages
+            'CHARCN_00005': 6,     # Défense moyenne pour les prêtres
+            'CHARCN_00003': 5,     # Défense moyenne pour les chasseurs
+            'CHARCN_00004': 7,     # Bonne défense pour les rôdeurs
         }
         return class_stats.get(self.character_class.name, 1)
     
@@ -264,16 +264,16 @@ class Skill(models.Model):
     def generate_description(self):
         # Example: Generate a description based on the skill name
         descriptions = {
-            'Heroic Strike': 'A powerful melee attack that deals significant damage to a single target.',
-            'Shield Bash': 'A stunning blow that interrupts the target''s actions and knocks them back.',
-            'Fireball': 'A projectile that hurls a ball of fire at the target, dealing damage and igniting them.',
-            'Ice Bolt': 'A projectile that hurls a bolt of ice at the target, dealing damage and slowing them.',
-            'Backstab': 'A sneak attack that deals bonus damage if the target is facing away from the rogue.',
-            'Gouge': 'A quick strike that stuns the target for a short duration.',
-            'Aimed Shot': 'A precise shot that deals high damage to a single target.',
-            'Multi-Shot': 'A rapid-fire attack that deals damage to multiple targets.',
-            'Heal': 'A spell that restores health to a target.',
-            'Holy Light': 'A powerful healing spell that also dispels harmful effects from the target.',
+            'SKLN_00001': 'SKLD_00001',
+            'SKLN_00002': 'SKLD_00002',
+            'SKLN_00003': 'SKLD_00003',
+            'SKLN_00004': 'SKLD_00004',
+            'SKLN_00005': 'SKLD_00005',
+            'SKLN_00006': 'SKLD_00006',
+            'SKLN_00007': 'SKLD_00007',
+            'SKLN_00008': 'SKLD_00008',
+            'SKLN_00009': 'SKLD_00009',
+            'SKLN_00010': 'SKLD_00010',
         }  
         return descriptions.get(self.name, '')  # Return the description or an empty string if not found
     
@@ -299,21 +299,21 @@ class NPC(models.Model):
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     is_dead = models.BooleanField(default=False)
     species = models.CharField(max_length=255, choices=[
-        ('Human', 'Human'),
-        ('Orc', 'Orc'),
-        ('Elf', 'Elf'),
-        ('Dwarf', 'Dwarf'),
-        ('Goblin', 'Goblin'),
-        ('Troll', 'Troll'),
-        ('Undead', 'Undead'),
-        ('Dragon', 'Dragon'),
-        ('Beast', 'Beast'),
+        ('NPCS_00001', 'NPCS_00001'),
+        ('NPCS_00002', 'NPCS_00002'),
+        ('NPCS_00003', 'NPCS_00003'),
+        ('NPCS_00004', 'NPCS_00004'),
+        ('NPCS_00005', 'NPCS_00005'),
+        ('NPCS_00006', 'NPCS_00006'),
+        ('NPCS_00007', 'NPCS_00007'),
+        ('NPCS_00008', 'NPCS_00008'),
+        ('NPCS_00009', 'NPCS_00009'),
     ])
     role = models.CharField(max_length=255)
     behaviour = models.CharField(max_length=255, choices=[
-        ('Friendly', 'Friendly'),
-        ('Neutral', 'Neutral'),
-        ('Hostile', 'Hostile'),
+        ('NPCB_00002', 'NPCB_00002'),
+        ('NPCB_00003', 'NPCB_00003'),
+        ('NPCB_00001', 'NPCB_00001'),
     ])
     attack_power = models.PositiveIntegerField(default=1)
     defense = models.PositiveIntegerField(default=1)
@@ -353,8 +353,8 @@ class NPCSavedState(models.Model):
     hp = models.IntegerField()
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     behaviour = models.CharField(max_length=255, choices=[
-        ('Friendly', 'Friendly'),
-        ('Neutral', 'Neutral'),
-        ('Hostile', 'Hostile'),
+        ('NPCB_00002', 'NPCB_00002'),
+        ('NPCB_00003', 'NPCB_00003'),
+        ('NPCB_00001', 'NPCB_00001'),
     ])
     is_dead = models.BooleanField(default=False)

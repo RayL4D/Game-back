@@ -48,7 +48,7 @@ class GameSerializer(serializers.ModelSerializer):
             return game
 
         else:
-            raise serializers.ValidationError("Aucun monde disponible")
+            raise serializers.ValidationError("Aucune map disponible")
     
 class CharacterClassSerializer(serializers.ModelSerializer):
     image_path = serializers.SerializerMethodField()  # Champ calculé pour le chemin de l'image

@@ -82,7 +82,7 @@ class MapViewSet(viewsets.ModelViewSet):
     serializer_class = MapSerializer
 
     @swagger_auto_schema(
-        operation_description="Obtient la liste des mondes ou crée un nouveau monde."
+        operation_description="Obtient la liste des map ou crée une nouvelle map."
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -147,7 +147,7 @@ class GameViewSet(viewsets.ModelViewSet):
             return Response(saved_game_serializer.data, status=status.HTTP_201_CREATED)
 
         except Game.DoesNotExist:
-            return Response({"error": "Personnage non trouvé ou n'appartient pas à l'utilisateur"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Partie non trouvé ou n'appartient pas à l'utilisateur"}, status=status.HTTP_404_NOT_FOUND)
     
         except Exception as e:  # Capturez les exceptions potentielles lors de la création de la sauvegarde
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)      
