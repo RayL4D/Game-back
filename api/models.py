@@ -84,9 +84,11 @@ class Game(models.Model):
     defense = models.PositiveIntegerField(default=1)
     hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
     experience = models.PositiveIntegerField(default=0)  # Expérience pour monter de niveau
+    level = models.PositiveIntegerField(default=1)  # Niveau du personnage
 
-    current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game')  # Optional current tile
-    inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'item'))  # Specify the correct fields    skills = models.ManyToManyField('Skill', through='CharacterSkill')
+    current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game') 
+    inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'item'))    
+    skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     updated_at = models.DateTimeField(auto_now=True)  # Date de la dernière mise à jour
