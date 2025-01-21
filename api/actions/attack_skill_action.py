@@ -19,7 +19,6 @@ class AttackSkillAction(BaseAction):
         if not npc_id:
             raise ValueError("Missing 'npc_id' parameter")
 
-        # Validation de la cible (similaire à AttackSimpleAction)
         self.validate_target(npc_id)
 
     def validate_target(self, npc_id):
@@ -38,12 +37,20 @@ class AttackSkillAction(BaseAction):
         target = NPC.objects.get(id=npc_id)
         skill = Skill.objects.get(id=skill_id)
 
-        damage = self.calculate_damage(self.game, skill_id)
+        if not target.is_dead:
+            damage = self.calculate_damage(self.game, skill_id)
 
-        target.hp -= damage
-        target.save()
+            target.hp -= damage
+            target.save()
+            return {'message': f"Vous avez utilisé la compétence {skill.name} et infligé {damage} dégâts à {target.name}."}
+        
+        else:
+            target.is_dead = True
+            target.save()
 
-        return {'message': f"Vous avez utilisé la compétence {skill.name} et infligé {damage} dégâts à {target.name}."}
+            # Ajouter l'expérience au joueur
+            self.game.experience += target.experience_reward
+            self.game.save()
 
     def calculate_damage(self, skill_id):
 

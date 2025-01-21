@@ -98,7 +98,7 @@ def add_initial_data(apps, schema_editor):
         behaviour='Hostile',
         attack_power=1,
         defense=2,
-        experience=20,
+        experience_reward=20,
     )
 
     npc2 = NPC.objects.create(
@@ -110,7 +110,7 @@ def add_initial_data(apps, schema_editor):
         behaviour='NPCB_00001',
         attack_power=2,
         defense=1,
-        experience=30,
+        experience_reward=30,
     )
 
     npc3 = NPC.objects.create(
@@ -122,7 +122,7 @@ def add_initial_data(apps, schema_editor):
         behaviour='NPCB_00001',
         attack_power=1,
         defense=0,
-        experience=15,
+        experience_reward=15,
     )
 
     npc4 = NPC.objects.create(
@@ -134,7 +134,7 @@ def add_initial_data(apps, schema_editor):
         behaviour='NPCB_00001',
         attack_power=30,
         defense=10,
-        experience=100,
+        experience_reward=100,
     )
 
     # Création d'objets

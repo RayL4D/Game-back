@@ -83,8 +83,9 @@ class Game(models.Model):
     attack_power = models.PositiveIntegerField(default=1)
     defense = models.PositiveIntegerField(default=1)
     hp = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1)])  # Minimum HP is 1
-    experience = models.PositiveIntegerField(default=0)  # Expérience pour monter de niveau
+    experience = models.PositiveIntegerField(default=1)  # Experience points
     level = models.PositiveIntegerField(default=1)  # Niveau du personnage
+    skill_points = models.IntegerField(default=0)
 
     current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game') 
     inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'item'))    
@@ -256,6 +257,49 @@ class Game(models.Model):
                 entry.is_equipped = True
                 entry.save()
 
+    def unequip_weapon(self, item):
+        if not item or not isinstance(item, Item):
+            return
+
+        if item == self.primary_weapon:
+            self.primary_weapon = None
+        elif item == self.secondary_weapon:
+            self.secondary_weapon = None
+
+        self.save()
+
+        # Update equipped flag in CharacterInventory (if applicable)
+        if hasattr(self, 'characterinventory_set'):
+            for entry in self.characterinventory_set.filter(item=item):
+                entry.is_equipped = False
+                entry.save()
+        
+    def level_up(self):
+        # Vérifie si le joueur a assez d'expérience pour passer au niveau supérieur
+        if self.experience >= self.get_next_level_experience():
+            self.level += 1
+            self.skill_points += 1  # Ou un autre nombre selon votre choix
+            self.experience -= self.get_next_level_experience()
+            self.save()
+
+    def get_next_level_experience(self):
+        return self.level * 100  # Formule pour calculer l'expérience nécessaire pour le prochain niveau
+
+    def add_skill_point(self, skill_id):
+        if self.skill_points > 0:
+            character_skill, created = CharacterSkill.objects.get_or_create(
+                game=self, skill_id=skill_id
+            )
+            character_skill.level += 1
+            character_skill.save()
+            self.skill_points -= 1
+            self.save()
+
+    def get_skill_power(self, skill_id):
+        character_skill = CharacterSkill.objects.get(game=self, skill_id=skill_id)
+        skill = character_skill.skill
+        return skill.power * character_skill.level
+    
 class Skill(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)  # Optional skill description
@@ -319,7 +363,7 @@ class NPC(models.Model):
     ])
     attack_power = models.PositiveIntegerField(default=1)
     defense = models.PositiveIntegerField(default=1)
-    experience = models.PositiveIntegerField(default=10)  # Exemple de valeur d'expérience
+    experience_reward = models.PositiveIntegerField(default=1)  # Exemple de valeur d'expérience
 
 
     def get_image_path(self):

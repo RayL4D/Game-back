@@ -25,21 +25,25 @@ class AttackPrimaryWeaponAction(BaseAction):
 
         target = NPC.objects.get(id=npc_id)
 
-        base_damage = self.game.attack_power
+        if not target.is_dead:
+            damage = self.game.attack_power
 
-        damage = calculate_damage(self, base_damage)
+            if self.primary_weapon:
+                damage += self.primary_weapon.attack_power
 
-        target.hp -= damage
-        target.save()
+            target.hp -= damage
+            target.behaviour = 'Hostile'
+            target.save()
+            return {'message': f"Vous avez infligé {damage} dégâts à {target.name}."}
+        else:
+            target.is_dead = True
+            target.save()
 
-        return {'message': f"Vous avez infligé {damage} dégâts à {target.name}."}
+            # Ajouter l'expérience au joueur
+            self.game.experience += target.experience_reward
+            self.game.save()
 
-    def calculate_damage(self, base_damage):
-        # Bonus d'arme
-        if self.primary_weapon:
-            base_damage += self.primary_weapon.attack_power
-
-        return base_damage      
+        return {'message': f"Vous avez tué {target.name} et gagné {target.experience_reward} points d'expérience."}
 
 
 
