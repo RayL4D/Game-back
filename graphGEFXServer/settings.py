@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-efr)+=kei!e4ra2g^+rw6mg+fmzg++(vbyw^j3jk3vf&2@#@75
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -66,7 +66,8 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://rayl4d.pythonanywhere.com"
+    "https://fld-project-game.netlify.app",
+    
 ]
 CORS_ALLOW_CREDENTIALS = True  # Permet l'envoi de cookies
 
