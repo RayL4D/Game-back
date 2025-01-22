@@ -47,6 +47,10 @@ def add_initial_data(apps, schema_editor):
     Item = apps.get_model('api', 'Item')
     Shop = apps.get_model('api', 'Shop')
     ShopItem = apps.get_model('api', 'ShopItem')
+    Game = apps.get_model('api', 'Game')
+    User = apps.get_model('auth', 'User')
+
+    user1 = User.objects.create_user(username='user1', password='password1')
 
     # Création de mondes
     map1a = Map.objects.create(name='MAPN_00001', description='MAPD_00001', starting_map=True)
@@ -88,6 +92,21 @@ def add_initial_data(apps, schema_editor):
     for skill_name, skill_description in descriptions.items():
         Skill.objects.create(name=skill_name, description=skill_description)
 
+    """
+    user = User.objects.get(id=1)  # Supposons que l'utilisateur existe
+    map = Map.objects.get(id=1)  # Supposons que la carte existe
+    character_class = CharacterClass.objects.get(id=1)  # Supposons que la classe existe
+
+    # Création de personnages
+    game = Game.objects.create(
+        user=user, 
+        map=map,
+        name='Test',
+        character_class=character_class,
+        current_tile=Tile.objects.get(map=map, posX=0, posY=0),
+
+    )
+    """
     # Création de monstres
     npc1 = NPC.objects.create(
         name='NPCN_00001',
