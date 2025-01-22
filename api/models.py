@@ -175,7 +175,7 @@ class Game(models.Model):
         if creating:
             # Set default values for new characters
             self.map = Map.objects.first()  # Set the starting map
-            self.current_tile = Tile.objects.filter(link_map=self.map).first()
+            self.current_tile = Tile.objects.filter(map=self.map).first()
             self.hp = self.get_default_hp()  # Set HP based on character class
             self.attack_power = self.get_default_attack_power()
             self.defense = self.get_default_defense()
@@ -193,7 +193,7 @@ class Game(models.Model):
     def respawn(self):
         # Logique de réapparition
         self.hp = self.get_default_hp()  # Réinitialiser les HP 
-        self.current_tile = Tile.objects.filter(link_map=self.map).first()
+        self.current_tile = Tile.objects.filter(map=self.map).first()
         self.save()
         # Vous pouvez également réinitialiser d'autres aspects du personnage ici si nécessaire
 

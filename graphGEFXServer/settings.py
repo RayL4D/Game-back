@@ -65,7 +65,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Ajoutez l'URL de votre frontend Next.js
+    "http://localhost:3000",
+    "https://rayl4d.pythonanywhere.com"
 ]
 CORS_ALLOW_CREDENTIALS = True  # Permet l'envoi de cookies
 
