@@ -47,6 +47,10 @@ def add_initial_data(apps, schema_editor):
     Item = apps.get_model('api', 'Item')
     Shop = apps.get_model('api', 'Shop')
     ShopItem = apps.get_model('api', 'ShopItem')
+    Game = apps.get_model('api', 'Game')
+    User = apps.get_model('auth', 'User')
+
+    user1 = User.objects.create_user(username='test', password='Btssio2017')
 
     # Création de mondes
     map1a = Map.objects.create(name='MAPN_00001', description='MAPD_00001', starting_map=True)
@@ -88,6 +92,21 @@ def add_initial_data(apps, schema_editor):
     for skill_name, skill_description in descriptions.items():
         Skill.objects.create(name=skill_name, description=skill_description)
 
+    
+    user = User.objects.get(id=1)  # Supposons que l'utilisateur existe
+    map = Map.objects.get(id=1)  # Supposons que la carte existe
+    character_class = CharacterClass.objects.get(id=1)  # Supposons que la classe existe
+
+    # Création de personnages
+    game = Game.objects.create(
+        user=user, 
+        map=map,
+        name='Test',
+        character_class=character_class,
+        current_tile=Tile.objects.get(map=map, posX=0, posY=0),
+
+    )
+    
     # Création de monstres
     npc1 = NPC.objects.create(
         name='NPCN_00001',
@@ -98,7 +117,7 @@ def add_initial_data(apps, schema_editor):
         behaviour='Hostile',
         attack_power=1,
         defense=2,
-        experience=20,
+        experience_reward=20,
     )
 
     npc2 = NPC.objects.create(
@@ -110,7 +129,7 @@ def add_initial_data(apps, schema_editor):
         behaviour='NPCB_00001',
         attack_power=2,
         defense=1,
-        experience=30,
+        experience_reward=30,
     )
 
     npc3 = NPC.objects.create(
@@ -122,7 +141,7 @@ def add_initial_data(apps, schema_editor):
         behaviour='NPCB_00001',
         attack_power=1,
         defense=0,
-        experience=15,
+        experience_reward=15,
     )
 
     npc4 = NPC.objects.create(
@@ -134,7 +153,7 @@ def add_initial_data(apps, schema_editor):
         behaviour='NPCB_00001',
         attack_power=30,
         defense=10,
-        experience=100,
+        experience_reward=100,
     )
 
     # Création d'objets

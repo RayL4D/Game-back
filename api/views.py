@@ -49,30 +49,47 @@ class GameActionsViewSet(viewsets.ViewSet):
         else:
             return Response({"error": "Invalid action type"}, status=status.HTTP_400_BAD_REQUEST)
         
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+from .serializers import UserSerializer 
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Add custom claims
-        token['username'] = user.username
-        # ...
+        # Ajouter des informations personnalisées au token
+        token['username'] = user.username 
+        if user.is_staff:
+            token['is_admin'] = True
 
         return token
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 def getRoutes(request):
-    route = [
-        'api/token/'
-        'api/token/refresh'
-    ]
-    return Response(route)
+    routes = [
+        '/api/token/',
+        '/api/token/refresh',
+        '/api/user/',]
+    return Response(routes)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = []  # Autorise l'accès sans authentification
+    permission_classes = [IsAuthenticated] 
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return User.objects.all()
+        else:
+            return User.objects.filter(id=user.id)
 
 
 class MapViewSet(viewsets.ModelViewSet):

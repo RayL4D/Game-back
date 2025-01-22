@@ -26,70 +26,31 @@ class AttackSimpleAction(BaseAction):
         target = NPC.objects.get(id=npc_id)
 
         base_damage = self.game.attack_power
+        
+        def calculate_damage(self, base_damage):
+            # Bonus d'arme
+            if self.primary_weapon:
+                base_damage += self.primary_weapon.attack_power
+            if self.secondary_weapon:
+                base_damage += self.secondary_weapon.attack_power
 
-        damage = calculate_damage(self, base_damage)
+            return base_damage
 
-        target.hp -= damage
-        target.save()
-
-        return {'message': f"Vous avez infligé {damage} dégâts à {target.name}."}
-
-    def calculate_damage(self, base_damage):
-        # Bonus d'arme
-        if self.primary_weapon:
-            base_damage += self.primary_weapon.attack_power
-        if self.secondary_weapon:
-            base_damage += self.secondary_weapon.attack_power
-
-        return base_damage      
-
-
-
-
-class UseSkillAction(BaseAction):
-    def execute(self):
-        skill_id = self.request_data.get('skill_id')
-        target_id = self.request_data.get('target_id')
-
-        attacker = self.game.character
-        skill = Skill.objects.get(id=skill_id)
-        target = NPC.objects.get(id=target_id) if target_id else attacker  # Pour les sorts de soin
-
-        # Vérifier si le personnage a assez de mana
-        if attacker.mana < skill.mana_cost:
-            return {'error': 'Vous n\'avez pas assez de mana.'}
-
-        # Appliquer les effets de la compétence
-        if skill.effect == 'damage':
-            damage = calculate_damage(attacker, target, skill_id)
+        if not target.is_dead:
+            damage = calculate_damage(self, base_damage)
             target.hp -= damage
+            target.behaviour = 'Hostile'
             target.save()
-        elif skill.effect == 'heal':
-            attacker.hp += skill.power
-            attacker.hp = min(attacker.hp, attacker.max_hp)
-            attacker.save()
-        # ... autres effets possibles
+            return {'message': f"Vous avez infligé {damage} dégâts à {target.name}."}
+    
+        else:
+            target.is_dead = True
+            target.save()
 
-        attacker.mana -= skill.mana_cost
-        attacker.save()
+            # Ajouter l'expérience au joueur
+            self.game.experience += target.experience_reward
+            self.game.save()
 
-        return {'message': f"Vous avez utilisé {skill.name}."}
+        return {'message': f"Vous avez tué {target.name} et gagné {target.experience_reward} points d'expérience."}
 
-class DefendAction(BaseAction):
-    def execute(self):
-        # Augmenter la défense du personnage pour le prochain tour
-        self.game.character.defense += 2
-        self.game.character.save()
-        return {'message': 'Vous vous mettez sur la défensive.'}
 
-# Fonction pour calculer les dégâts
-def calculate_damage(attacker, target, skill_id=None):
-    base_damage = attacker.strength
-    if skill_id:
-        skill = Skill.objects.get(id=skill_id)
-        base_damage += skill.power
-
-    # Appliquer des modificateurs (critique, esquive, etc.)
-    # ...
-
-    return base_damage
