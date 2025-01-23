@@ -39,6 +39,8 @@ class GameSerializer(serializers.ModelSerializer):
             game.hp = game.get_default_hp()
             game.equip_starting_gear()
             game.assign_class_skills()
+            game.get_default_attack_power()
+            game.get_default_defense()
 
             print("Character HP after get_default_hp:", game.hp)  # Vérifier les HP
             print("Character inventory after equip_starting_gear:", list(game.inventory.all()))  # Vérifier l'inventaire

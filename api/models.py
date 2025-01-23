@@ -391,8 +391,13 @@ class ShopItem(models.Model):
 
 
 class TileSavedState(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)  # Link to the specific game
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Link to the specific user
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     visited = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = (('game', 'user', 'tile'),)  # Ensure unique combination of game, user, and tile
 
 class NPCSavedState(models.Model):
     npc = models.ForeignKey(NPC, on_delete=models.CASCADE)
