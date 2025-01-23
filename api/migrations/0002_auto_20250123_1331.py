@@ -5,6 +5,8 @@ from django.db import migrations
 def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=None):
     Tile = apps.get_model('api', 'Tile')
     Map = apps.get_model('api', 'Map')
+    TileSavedState = apps.get_model('api', 'TileSavedState')  # Import TileSavedState
+
     map = Map.objects.get(pk=map_id)
 
     # Créer les tuiles
@@ -13,7 +15,7 @@ def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=No
         for y in range(grid_size):
             tile = Tile.objects.create(map=map, posX=x, posY=y)
             tiles[(x, y)] = tile
-            
+
           # Set portal if specified and coordinates match
             if next_map_portal_tile_coords and (x, y) == next_map_portal_tile_coords:
                 try:
@@ -49,6 +51,7 @@ def add_initial_data(apps, schema_editor):
     ShopItem = apps.get_model('api', 'ShopItem')
     Game = apps.get_model('api', 'Game')
     User = apps.get_model('auth', 'User')
+    TileSavedState = apps.get_model('api', 'TileSavedState')  # Import TileSavedState
 
     user1 = User.objects.create_user(username='test', password='Btssio2017')
 
@@ -99,20 +102,7 @@ def add_initial_data(apps, schema_editor):
     for skill_name, skill_description in descriptions.items():
         Skill.objects.create(name=skill_name, description=skill_description)
 
-    
-    user = User.objects.get(id=1)  # Supposons que l'utilisateur existe
-    map = Map.objects.get(id=1)  # Supposons que la carte existe
-    character_class = CharacterClass.objects.get(id=1)  # Supposons que la classe existe
 
-    # Création de personnages
-    game = Game.objects.create(
-        user=user, 
-        map=map,
-        name='Test',
-        character_class=character_class,
-        current_tile=Tile.objects.get(map=map, posX=0, posY=0),
-
-    )
     
     # Création de monstres
     npc1 = NPC.objects.create(
