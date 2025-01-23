@@ -75,6 +75,13 @@ def add_initial_data(apps, schema_editor):
 
     create_tiles_for_map(apps, map1b.id, 3)
 
+    # Find the tile with ID 1
+    tile = Tile.objects.get(pk=1)
+    # Set the visited field to True
+    tile.visited = True
+    # Save the changes to the database
+    tile.save()
+
     # Création de compétences
     descriptions = {
         'SKLN_00001': 'SKLD_00001',
