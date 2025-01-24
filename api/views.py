@@ -116,7 +116,7 @@ class GameViewSet(viewsets.ModelViewSet):
     def start_new_game(self, request):
         # Récupérer les données nécessaires pour créer un nouveau jeu
         character_class_id = request.data.get('character_class_id')
-        game_name = request.data.get('name', 'New Adventure')
+        game_name = request.data.get('name')
 
         if not character_class_id:
             return Response(
