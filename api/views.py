@@ -82,7 +82,7 @@ def getRoutes(request):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -90,7 +90,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return User.objects.all()
         else:
             return User.objects.filter(id=user.id)
-
 
 class MapViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -113,61 +112,61 @@ class GameViewSet(viewsets.ModelViewSet):
     serializer_class = GameSerializer
     permission_classes = [IsAuthenticated]
 
-    @action(detail=True, methods=['post'])
-    def move(self, request, pk=None):
-        game = self.get_object()
-        direction = request.data.get('direction')
-
-        action = MoveAction(game, request.data)
-        action.validate()
-        result = action.execute()
-        return action.handle_response(result)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        # Remove redundant world checks
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
     @action(detail=False, methods=['post'])
     def start_new_game(self, request):
-        print("Données de la requête :", request.data)  
+        # Récupérer les données nécessaires pour créer un nouveau jeu
+        character_class_id = request.data.get('character_class_id')
+        game_name = request.data.get('name', 'New Adventure')
 
-        game_id = request.data.get('game_id')
-
-        if not game_id:
-            return Response({"error": "L'ID du personnage est requis"}, status=status.HTTP_400_BAD_REQUEST)
+        if not character_class_id:
+            return Response(
+                {"error": "Une classe de personnage est requise"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
-            game = Game.objects.get(id=game_id, user=request.user)  
-            print("Personnage récupéré :", game)  
+            # Récupérer la classe de personnage
+            character_class = CharacterClass.objects.get(id=character_class_id)
 
-            # Récupérer les objets Item de l'inventaire du personnage
-            inventory_items = game.inventory.all()
-            
-            # Sérialiser les objets Item en JSON (vous pouvez personnaliser la sérialisation si besoin)
-            inventory_data = serializers.serialize('json', inventory_items)
-
-            saved_game = Game.objects.create(
+            # Créer un nouveau jeu
+            new_game = Game.objects.create(
                 user=request.user,
-                game=game,
-                current_tile=game.current_tile,
-                inventory_data=inventory_data,  # Stocker les données d'inventaire sérialisées
-                save_name=request.data.get('save_name', '')
+                name=game_name,
+                character_class=character_class,
+                # Les autres attributs seront définis par les méthodes de save() du modèle
             )
-            print("SavedGameState créé :", saved_game)  
 
-            saved_game_serializer = Game(saved_game)
-            return Response(saved_game_serializer.data, status=status.HTTP_201_CREATED)
+            # La méthode save() du modèle Game va automatiquement :
+            # - Définir la première map
+            # - Définir la première tuile
+            # - Définir les HP par défaut
+            # - Équiper l'équipement de départ
+            # - Assigner les compétences de classe
 
-        except Game.DoesNotExist:
-            return Response({"error": "Partie non trouvé ou n'appartient pas à l'utilisateur"}, status=status.HTTP_404_NOT_FOUND)
-    
-        except Exception as e:  # Capturez les exceptions potentielles lors de la création de la sauvegarde
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)      
+            # Sauvegarde automatique de la première tuile comme visitée
+            if new_game.current_tile:
+                TileSavedState.objects.create(
+                    game=new_game, 
+                    user=request.user, 
+                    tile=new_game.current_tile, 
+                    visited=True
+                )
+
+            # Utiliser le serializer pour renvoyer les données du nouveau jeu
+            serializer = self.get_serializer(new_game)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except CharacterClass.DoesNotExist:
+            return Response(
+                {"error": "Classe de personnage non trouvée"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)

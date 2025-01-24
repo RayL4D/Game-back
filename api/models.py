@@ -180,15 +180,6 @@ class Game(models.Model):
             self.attack_power = self.get_default_attack_power()
             self.defense = self.get_default_defense()
 
-            # Create TileSavedState for each tile in the map
-            tiles = Tile.objects.filter(map=self.map)
-            for tile in tiles:
-                TileSavedState.objects.create(
-                    game=self,
-                    user=self.user,
-                    tile=tile,
-                    visited=tile.visited,  # Copy initial state
-                )
 
         super().save(*args, **kwargs)  # Call the parent class's save method
 
@@ -402,8 +393,8 @@ class ShopItem(models.Model):
 
 
 class TileSavedState(models.Model):
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, null=True)  # Allow null value
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)  # Link to the specific user
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)  
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     visited = models.BooleanField(default=False)
 
