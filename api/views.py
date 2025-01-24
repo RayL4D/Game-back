@@ -111,7 +111,7 @@ class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
     permission_classes = [IsAuthenticated]
-
+    """
     @action(detail=False, methods=['post'])
     def start_new_game(self, request):
         # Récupérer les données nécessaires pour créer un nouveau jeu
@@ -167,7 +167,8 @@ class GameViewSet(viewsets.ModelViewSet):
                 {"error": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
+        """
+    
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
 

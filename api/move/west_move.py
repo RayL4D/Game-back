@@ -1,4 +1,4 @@
-from ..models import Tile, NPC
+from ..models import Tile, NPC, TileSavedState
 from actions.base_action import BaseAction
 from rest_framework import status
 from rest_framework.response import Response
@@ -18,7 +18,6 @@ class WestMove(BaseAction):
         door_field = f"{direction}_door_id"
         if not getattr(current_tile, door_field): 
             raise ValueError(f"No door in the {direction} direction")
-
 
     def execute(self):
         direction = self.request_data.get('direction')
@@ -42,23 +41,31 @@ class WestMove(BaseAction):
         # Vérifier s'il y a un PNJ sur la tuile actuelle
         if NPC.objects.filter(tile=current_tile).exists():
             return {"error": "You cannot move. There is an NPC on your current tile."}
-        
-        # npc = NPC.objects.get(tile=current_tile)
-        # return {"options": [
-        #    {"text": "Parler", "action": "talk"},
-        #    {"text": "Attaquer", "action": "attack"}
-        # ]}
-
 
         # Déplacer le personnage
         self.game.current_tile = target_tile
         self.game.save()
         self.game.save_game_state()
 
+    
+        # Vérifier et créer TileSavedState si nécessaire
+        tile_saved_state, created = TileSavedState.objects.get_or_create(
+            game=self.game,
+            user=self.game.user,
+            tile=target_tile,
+            defaults={'visited': True}
+        )
+
+        # Si le TileSavedState existait déjà, on peut vouloir le mettre à jour
+        if not created and not tile_saved_state.visited:
+            tile_saved_state.visited = True
+            tile_saved_state.save()
+
         return {
             "success": "Character moved", 
             "new_position": {"posX": target_tile.posX, "posY": target_tile.posY},
             "tile_data": {  # Données supplémentaires sur la tuile cible
                 "has_npcs": NPC.objects.filter(tile=target_tile).exists(),
+                "first_visit": created  # Indique si c'est la première visite de cette tuile
             }
         }
