@@ -183,14 +183,15 @@ class Game(models.Model):
 
         super().save(*args, **kwargs)  # Call the parent class's save method
 
-        if self.pk is None and self.current_tile:
+        # Save the first visited tile upon creation
+        if creating and self.current_tile:
             TileSavedState.objects.create(
                 game=self,
                 user=self.user,
                 tile=self.current_tile,
                 visited=True
             )
-            
+
         if creating:
             self.equip_starting_gear()  # Equip starting gear
             self.assign_class_skills()  # Assign class skills
