@@ -154,86 +154,72 @@ def add_initial_data(apps, schema_editor):
     )
 
     # Création d'objets
-    sword = Item.objects.create(
+    sword1 = Item.objects.create(
         name='ITMN_00001',
         item_type='ITMT_00001',
         description='ITMD_00001',
+        tile=Tile.objects.get(map=map1a, posX=2, posY=2),
         attack_power = 1,
     )
 
-    potion = Item.objects.create(
+    potion1 = Item.objects.create(
         name='ITMN_00002',
         item_type='ITMT_00003',
         description='ITMD_00002',
+        tile = Tile.objects.get(map=map1a, posX=1, posY=1),
         healing=10,    
         )
 
-    # Création de magasins
-    alchemy_shop = Shop.objects.create(
-        name='SHPN_00001',
-        tile=Tile.objects.get(map=map1a, posX=0, posY=2),
-    )
-    ShopItem.objects.create(shop=alchemy_shop, item=potion, price=15)
-
-    equipment_shop = Shop.objects.create(
-        name='SHPN_00002',
-        tile=Tile.objects.get(map=map2a, posX=1, posY=3),
-    )
-    armor = Item.objects.create(
+    armor1 = Item.objects.create(
         name='ITMN_00003',
         item_type='ITMT_00002',
         description='ITMD_00003',
+        tile = Tile.objects.get(map=map2a, posX=2, posY=3),
         defense=10,
     )
-    ShopItem.objects.create(shop=equipment_shop, item=armor, price=100)
 
-    food_shop = Shop.objects.create(
-        name='SHPN_00003',
-        tile=Tile.objects.get(map=map3a, posX=4, posY=2),
-    )
-    bread = Item.objects.create(
+    bread1 = Item.objects.create(
         name='ITMN_00004',
         item_type='ITMT_00004',
         description='ITMD_00004',
+        tile = Tile.objects.get(map=map3a, posX=5, posY=2),
         healing=2,
         )
-    ShopItem.objects.create(shop=food_shop, item=bread, price=5)
 
-    manuscript_shop = Shop.objects.create(
-        name='SHPN_00004',
-        tile=Tile.objects.get(map=map4a, posX=2, posY=1),
-    )
-    scroll = Item.objects.create(
+    scroll1 = Item.objects.create(
         name='ITMN_00005',
         item_type='ITMT_00007',
         description='ITMD_00005',
+        tile = Tile.objects.get(map=map4a, posX=1, posY=1),
         )
-    ShopItem.objects.create(shop=manuscript_shop, item=scroll, price=50)
 
-    golden_amulet = Item.objects.create(
+    golden_amulet1 = Item.objects.create(
         name='ITMN_00006',
         item_type='ITMT_00002',
         description='ITMD_00006',
-        
+        tile = Tile.objects.get(map=map1b, posX=1, posY=0),
         )
 
-    scroll_of_wisdom = Item.objects.create(
+    scroll_of_wisdom1 = Item.objects.create(
         name='ITMN_00007',
         item_type='ITMT_00007',
         description='ITMD_00007',
+        tile = Tile.objects.get(map=map2a, posX=0, posY=0),
         
     )
 
-    dragon_scale_armor = Item.objects.create(
+    dragon_scale_armor1 = Item.objects.create(
         name='ITMN_00008',
         item_type='ITMT_00002',
         description='ITMD_00008',
+        tile = Tile.objects.get(map=map3a, posX=8, posY=3),
         defense=20,
     )
-    flameforged_sword = Item.objects.create(
+    flameforged_sword1 = Item.objects.create(
         name='ITMN_00009',
         item_type='ITMT_00001',
         description='ITMD_00009',
+        tile = Tile.objects.get(mapm=map1a, posX=2, posY=1),
         attack_power=10,
     )
 
