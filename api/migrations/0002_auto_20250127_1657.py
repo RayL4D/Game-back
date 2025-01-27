@@ -219,7 +219,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00009',
         item_type='ITMT_00001',
         description='ITMD_00009',
-        tile = Tile.objects.get(mapm=map1a, posX=2, posY=1),
+        tile = Tile.objects.get(map=map1a, posX=2, posY=1),
         attack_power=10,
     )
 

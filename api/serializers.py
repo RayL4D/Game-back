@@ -37,13 +37,11 @@ class GameSerializer(serializers.ModelSerializer):
 
     # Appliquer les paramètres par défaut après la création du personnage
             game.hp = game.get_default_hp()
-            game.equip_starting_gear()
             game.assign_class_skills()
             game.get_default_attack_power()
             game.get_default_defense()
 
             print("Character HP after get_default_hp:", game.hp)  # Vérifier les HP
-            print("Character inventory after equip_starting_gear:", list(game.inventory.all()))  # Vérifier l'inventaire
             print("Character skills after assign_class_skills:", list(game.skills.all()))  # Vérifier les compétences
 
             game.save()

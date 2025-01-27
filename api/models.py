@@ -135,12 +135,6 @@ class Game(models.Model):
         self.current_tile = game.current_tile
         self.save()
 
-    def equip_starting_gear(self):
-        starting_weapon = Item.objects.filter(name="ITMN_00001").first()
-        if starting_weapon:
-            self.inventory = starting_weapon  # Can keep this for reference
-            self.save()
-
 
     def assign_class_skills(self):
         print("Assigning skills for class:", self.character_class.name)  # Vérification du nom de la classe
@@ -191,7 +185,6 @@ class Game(models.Model):
             )
 
         if creating:
-            self.equip_starting_gear()  # Equip starting gear
             self.assign_class_skills()  # Assign class skills
 
         # Vérifier si le personnage est mort après la contre-attaque
