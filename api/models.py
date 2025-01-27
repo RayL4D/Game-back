@@ -67,14 +67,15 @@ class Item(models.Model):
         ('ITMT_00008', 'ITMT_00008'),
         ('ITMT_00009', 'ITMT_00009'),
         ])
-    is_equipped = models.BooleanField(default=False)
     description = models.TextField(blank=True)  # Optional item description
     attack_power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance d'attaque de l'arme
     defense = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Valeur de défense de l'armure
     healing = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Valeur de soin de la potion
+    tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
 
     def get_image_path(self):
         return f'/img/Items/item{self.id}.png'
+    
 class Game(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
     name = models.CharField(max_length=255)
@@ -132,15 +133,12 @@ class Game(models.Model):
 
     def save_from_game(self, game):
         self.current_tile = game.current_tile
-        self.inventory_data = json.dumps([  # Serialize inventory item IDs
-            item.id for item in game.characterinventory_set.all()
-        ])
         self.save()
 
     def equip_starting_gear(self):
         starting_weapon = Item.objects.filter(name="ITMN_00001").first()
         if starting_weapon:
-            self.primary_weapon = starting_weapon
+            self.inventory = starting_weapon  # Can keep this for reference
             self.save()
 
 
@@ -422,3 +420,9 @@ class NPCSavedState(models.Model):
         ('NPCB_00001', 'NPCB_00001'),
     ])
     is_dead = models.BooleanField(default=False)
+
+class ItemSavedState(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)  
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    tile = models.ForeignKey(Tile, on_delete=models.CASCADE)

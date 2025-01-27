@@ -1,5 +1,6 @@
 from .base_action import BaseAction
 from ..models import Game, Skill, NPC, Item, NPCSavedState
+from .npc_state_utils import get_or_create_npc_saved_state
 
 
 class AttackSkillAction(BaseAction):
@@ -34,27 +35,13 @@ class AttackSkillAction(BaseAction):
         npc_id = self.request_data.get('npc_id')
         skill_id = self.request_data.get('skill_id')
 
-        target = NPC.objects.get(id=npc_id)
+        target = NPC.objects.get(id=npc_id, tile=self.game.current_tile)
 
-        # Check if a NPCSavedState already exists for this NPC, game, and user
-        existing_state = NPCSavedState.objects.filter(game=self.game, user=self.game.user, npc=target).first()
+        # Récupérer ou créer l'état sauvegardé
+        npc_saved_state = get_or_create_npc_saved_state(self.game, self.game.user, target)
 
-        if not existing_state:
-            # Create a new NPCSavedState if it doesn't exist
-            npc_saved_state = NPCSavedState.objects.create(
-                game=self.game,
-                user=self.game.user,
-                npc=target,
-                hp=target.hp,
-                tile=self.game.current_tile,
-                behaviour=target.behaviour,
-                is_dead=target.is_dead,
-            )
-        else:
-            # Update the existing NPCSavedState
-            npc_saved_state = existing_state
 
-        if not target.is_dead:
+        if npc_saved_state.hp > 0:
             damage = self.calculate_damage(self.game, skill_id)
 
             # Apply damage to NPCSavedState (not the original NPC)

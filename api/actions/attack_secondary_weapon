@@ -1,5 +1,6 @@
 from .base_action import BaseAction
 from ..models import Game, Skill, NPC, Item
+from .npc_state_utils import get_or_create_npc_saved_state
 
 class AttackSecondaryWeaponAction(BaseAction):
     def validate(self):
@@ -15,34 +16,41 @@ class AttackSecondaryWeaponAction(BaseAction):
 
         # Check if an NPC is present on the target tile
         npc = NPC.objects.filter(tile=current_tile).first()
+
         if npc is None:
             raise ValueError("No NPC to attack")
-        if npc.behaviour == 'Friendly':
+        if npc.behaviour == 'NPCB_00002':
             raise ValueError("Cannot attack a friendly NPC")
         
     def execute(self):
         npc_id = self.request_data.get('npc_id')
 
-        target = NPC.objects.get(id=npc_id)
+        if not npc_id:
+            raise ValueError("Veuillez spécifier l'ID du PNJ à attaquer.")
+        
+        target = NPC.objects.get(id=npc_id, tile=self.game.current_tile)
 
-        if not target.is_dead:
+        # Récupérer ou créer l'état sauvegardé
+        npc_saved_state = get_or_create_npc_saved_state(self.game, self.game.user, target)
+
+        if npc_saved_state.hp > 0:
             damage = self.game.attack_power
 
             if self.secondary_weapon:
                 damage += self.secondary_weapon.attack_power
 
-            target.hp -= damage
-            target.behaviour = 'Hostile'
-            target.save()
-
-            return {'message': f"Vous avez infligé {damage} dégâts à {target.name}."}   
+            npc_saved_state.hp -= damage
+            npc_saved_state.behaviour = 'NPCB_00001'
+            npc_saved_state.save()
+            return {'message': f"Vous avez infligé {damage} dégâts à {target.name}."}
         else:
-            target.is_dead = True
-            target.save()
+            npc_saved_state.is_dead = True
+            npc_saved_state.save()
 
             # Ajouter l'expérience au joueur
             self.game.experience += target.experience_reward
-            self.game.save() 
+            self.game.save()
+            return {'message': f"Vous avez tué {target.name} et gagné {target.experience_reward} points d'expérience."}
 
 
 
