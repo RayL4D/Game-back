@@ -53,7 +53,7 @@ def add_initial_data(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     TileSavedState = apps.get_model('api', 'TileSavedState')  # Import TileSavedState
 
-    user1 = User.objects.create_user(username='test', password='Btssio2017')
+    #user1 = User.objects.create_user(username='test', password='Btssio2017')
 
     # Création de mondes
     map1a = Map.objects.create(name='MAPN_00001', description='MAPD_00001', starting_map=True)
@@ -79,11 +79,11 @@ def add_initial_data(apps, schema_editor):
     create_tiles_for_map(apps, map1b.id, 3)
 
     # Find the tile with ID 1
-    tile = Tile.objects.get(pk=1)
+    #tile = Tile.objects.get(pk=1)
     # Set the visited field to True
-    tile.visited = True
+    #tile.visited = True
     # Save the changes to the database
-    tile.save()
+    #tile.save()
 
     # Création de compétences
     descriptions = {

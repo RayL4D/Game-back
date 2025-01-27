@@ -1,5 +1,5 @@
 from ..models import Tile, NPC, TileSavedState
-from actions.base_action import BaseAction
+from ..actions.base_action import BaseAction
 from rest_framework import status
 from rest_framework.response import Response
 

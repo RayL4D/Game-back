@@ -403,7 +403,7 @@ class ShopItem(models.Model):
 
 class TileSavedState(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)  
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     visited = models.BooleanField(default=False)
 
@@ -411,6 +411,8 @@ class TileSavedState(models.Model):
         unique_together = (('game', 'user', 'tile'),)  # Ensure unique combination of game, user, and tile
 
 class NPCSavedState(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)  
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     npc = models.ForeignKey(NPC, on_delete=models.CASCADE)
     hp = models.IntegerField()
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
