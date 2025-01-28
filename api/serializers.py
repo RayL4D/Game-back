@@ -26,34 +26,32 @@ class GameSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
+        user = self.context['request'].user  # Récupération de l'utilisateur depuis le contexte
         character_class = validated_data.pop('character_class')
         default_map = Map.objects.first()
 
+        # Vérification de la limite de 5 jeux par utilisateur
+        if Game.objects.filter(user=user).count() >= 5:
+            raise serializers.ValidationError("Vous avez atteint la limite de 5 jeux créés.")
+
         if default_map:
             game = Game.objects.create(
-                user=self.context['request'].user,  # Utilisez request.user ici
+                user=user,  # Utilisation de l'utilisateur connecté
                 character_class=character_class,
                 map=default_map,
                 **validated_data
             )
 
-            print("Game created:", game)  # Afficher l'objet Character créé
-            print("Character class:", game.character_class)  # Vérifier si la classe est liée
-
-    # Appliquer les paramètres par défaut après la création du personnage
+            # Appliquer les paramètres par défaut après la création du jeu
             game.hp = game.get_default_hp()
             game.assign_class_skills()
             game.get_default_attack_power()
             game.get_default_defense()
-
-            print("Character HP after get_default_hp:", game.hp)  # Vérifier les HP
-            print("Character skills after assign_class_skills:", list(game.skills.all()))  # Vérifier les compétences
-
             game.save()
-            return game
 
+            return game
         else:
-            raise serializers.ValidationError("Aucune map disponible")
+            raise serializers.ValidationError("Aucune map disponible.")
     
 class CharacterClassSerializer(serializers.ModelSerializer):
     image_path = serializers.SerializerMethodField()  # Champ calculé pour le chemin de l'image
