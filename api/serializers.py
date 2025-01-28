@@ -1,7 +1,7 @@
 #graphGEFXServer/api/serializers.py
 
 from rest_framework import serializers
-from .models import User, Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState
+from .models import User, Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -127,4 +127,11 @@ class TileSavedStateSerializer(serializers.ModelSerializer):
 class NPCSavedStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = NPCSavedState
+        fields = '__all__'
+
+
+class ItemSavedStateSerializer(serializers.ModelSerializer):
+    image_path = serializers.SerializerMethodField()  # Add this line
+    class Meta:
+        model = ItemSavedState
         fields = '__all__'
