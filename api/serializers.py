@@ -4,9 +4,14 @@ from rest_framework import serializers
 from .models import User, Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
     class Meta:
         model = User
         fields = '__all__'  # Les champs que vous voulez exposer
+        
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
 
 class MapSerializer(serializers.ModelSerializer):
     class Meta:
