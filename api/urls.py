@@ -11,7 +11,7 @@ from rest_framework_simplejwt.views import (
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
-from .views import GameActionsViewSet
+from .views import GameActionsViewSet, TileContextViewSet
 
 
 schema_view = get_schema_view(
@@ -44,6 +44,7 @@ router.register(r'npc', views.NPCViewSet)
 router.register(r'shop', views.ShopViewSet)
 router.register(r'shopitem', views.ShopItemViewSet)
 router.register(r'game/actions', GameActionsViewSet, basename='game-actions')
+router.register(r'tile-context/(?P<user_id>\d+)/(?P<game_id>\d+)', TileContextViewSet, basename='tile-context')
 
 
 

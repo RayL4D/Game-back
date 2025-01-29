@@ -3,7 +3,7 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets, permissions #,generics
-from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer 
+from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, TileContextSerializer 
 from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
@@ -248,3 +248,25 @@ class ItemSavedStateViewSet(viewsets.ModelViewSet):
     queryset = ItemSavedState.objects.all()
     serializer_class = ItemSavedStateSerializer
     permission_classes = [IsAuthenticated]
+
+
+class TileContextViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, game_id, user_id):
+        # On récupère toutes les TileSavedState pour un jeu et un utilisateur donnés
+        tile_saved_states = TileSavedState.objects.filter(game_id=game_id, user_id=user_id, visited=True)
+
+        # Préparer la liste des données combinées
+        tile_context_data = []
+        for tile_saved_state in tile_saved_states:
+            tile = tile_saved_state.tile  # La Tile associée au TileSavedState
+            
+            # Sérialiser les objets et les ajouter à la réponse
+            tile_context_data.append({
+                'tile': TileSerializer(tile).data,
+                'tile_saved_state': TileSavedStateSerializer(tile_saved_state).data
+            })
+
+        # Renvoie la réponse avec les données combinées
+        return Response(tile_context_data)

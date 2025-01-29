@@ -175,16 +175,8 @@ class Game(models.Model):
                 game=self,
                 user=self.user,
                 tile=self.current_tile,
-                posX=self.current_tile.posX,
-                posY=self.current_tile.posY,
-                north_door=self.current_tile.north_door,
-                south_door=self.current_tile.south_door,
-                east_door=self.current_tile.east_door,
-                west_door=self.current_tile.west_door,
-                portal_to_map=self.current_tile.portal_to_map,
                 visited=True
             )
-
 
         if creating:
             self.assign_class_skills()  # Assign class skills
@@ -398,13 +390,6 @@ class TileSavedState(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)  
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
-    posX = models.PositiveIntegerField(validators=[MinValueValidator(0)])
-    posY = models.PositiveIntegerField(validators=[MinValueValidator(0)])
-    north_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='north_connected_tile')
-    south_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='south_connected_tile')
-    east_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='east_connected_tile')
-    west_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='west_connected_tile')
-    portal_to_map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True )
     visited = models.BooleanField(default=False)
 
     class Meta:
