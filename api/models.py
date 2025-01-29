@@ -171,12 +171,26 @@ class Game(models.Model):
 
         # Save the first visited tile upon creation
         if creating and self.current_tile:
+            next_tile = Tile.objects.filter(id=self.current_tile.id + 1).first()
+
             TileSavedState.objects.create(
                 game=self,
                 user=self.user,
                 tile=self.current_tile,
                 visited=True
             )
+            
+            if next_tile:
+                TileSavedState.objects.create(
+                    game=self,
+                    user=self.user,
+                    tile=next_tile,
+                    visited=True
+                )
+            else:
+                print("La tile suivante n'existe pas.")
+
+
 
         if creating:
             self.assign_class_skills()  # Assign class skills

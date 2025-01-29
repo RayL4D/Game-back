@@ -3,7 +3,7 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets, permissions #,generics
-from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, TileContextSerializer 
+from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, MapContextSerializer, TileContextSerializer 
 from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
@@ -250,12 +250,12 @@ class ItemSavedStateViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class TileContextViewSet(viewsets.ViewSet):
+class MapContextViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
-    def list(self, request, game_id, user_id):
+    def list(self, request, game_id):
         # On récupère toutes les TileSavedState pour un jeu et un utilisateur donnés
-        tile_saved_states = TileSavedState.objects.filter(game_id=game_id, user_id=user_id, visited=True)
+        tile_saved_states = TileSavedState.objects.filter(game_id=game_id, visited=True)
 
         # Préparer la liste des données combinées
         tile_context_data = []
@@ -270,3 +270,39 @@ class TileContextViewSet(viewsets.ViewSet):
 
         # Renvoie la réponse avec les données combinées
         return Response(tile_context_data)
+    
+class TileContextViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<game_id>\d+)')
+    def get_tile_context(self, request, game_id):
+        try:
+            # 🔍 Vérifier si le Game existe
+            game = Game.objects.get(id=game_id)
+            print("Game trouvé :", game)  # Debugging
+
+            # 🔍 Vérifier si une current_tile est définie
+            current_tile = game.current_tile
+            if not current_tile:
+                print("Erreur : Pas de current_tile")  # Debugging
+                return Response({"error": "No current tile set for this game"}, status=404)
+
+            # 🔍 Vérifier si un TileSavedState existe pour cette current_tile
+            tile_saved_state = TileSavedState.objects.filter(game=game, tile=current_tile, visited=True).first()
+            print("TileSavedState trouvé :", tile_saved_state)  # Debugging
+
+            if not tile_saved_state:
+                print("Erreur : Tile non visitée")  # Debugging
+                return Response({"error": "Current tile has not been visited"}, status=404)
+
+            # 🔍 Sérialisation et réponse
+            serializer = TileContextSerializer({
+                "tile": current_tile,
+                "tile_saved_state": tile_saved_state
+            })
+            return Response(serializer.data)
+
+        except Game.DoesNotExist:
+            print("Erreur : Game non trouvé")  # Debugging
+            return Response({"error": "Game not found"}, status=404)
+

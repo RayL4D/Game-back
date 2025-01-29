@@ -139,6 +139,10 @@ class ItemSavedStateSerializer(serializers.ModelSerializer):
         model = ItemSavedState
         fields = '__all__'
 
+class MapContextSerializer(serializers.Serializer):
+    tile = TileSerializer()
+    tile_saved_state = TileSavedStateSerializer()
+
 class TileContextSerializer(serializers.Serializer):
     tile = TileSerializer()
     tile_saved_state = TileSavedStateSerializer()
