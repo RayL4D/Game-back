@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=None):
+def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=None, portal_destination_coords=None):
     Tile = apps.get_model('api', 'Tile')
     Map = apps.get_model('api', 'Map')
     TileSavedState = apps.get_model('api', 'TileSavedState')  # Import TileSavedState
@@ -16,13 +16,20 @@ def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=No
             tile = Tile.objects.create(map=map, posX=x, posY=y)
             tiles[(x, y)] = tile
 
-          # Set portal if specified and coordinates match
+            # Définir le portail vers la prochaine map
             if next_map_portal_tile_coords and (x, y) == next_map_portal_tile_coords:
                 try:
                     next_map = Map.objects.get(pk=map.id + 1)
                     tile.portal_to_map = next_map
+
+                    # Définir la destination sur la prochaine carte
+                    if portal_destination_coords:
+                        destination_tile = Tile.objects.filter(
+                            map=next_map, posX=portal_destination_coords[0], posY=portal_destination_coords[1]
+                        ).first()
+                        tile.portal_destination_tile = destination_tile
                 except Map.DoesNotExist:
-                    pass  # No next map, so ignore portal
+                    pass  # Pas de map suivante, donc pas de portail
 
             tile.save()
 
@@ -70,11 +77,12 @@ def add_initial_data(apps, schema_editor):
     characterclass4 = CharacterClass.objects.create(name='CHARCN_00004', description='CHARCD_00004')
     characterclass5 = CharacterClass.objects.create(name='CHARCN_00005', description='CHARCD_00005')
 
-    # Créer des tuiles pour chaque monde
-    create_tiles_for_map(apps, map1a.id, 3, next_map_portal_tile_coords=(2, 1))
-    create_tiles_for_map(apps, map2a.id, 5, next_map_portal_tile_coords=(4, 0))
-    create_tiles_for_map(apps, map3a.id, 10, next_map_portal_tile_coords=(9, 4))
+    # Créer des tuiles pour chaque monde avec portails et destination d'arrivée  
+    create_tiles_for_map(apps, map1a.id, 3, next_map_portal_tile_coords=(2, 1), portal_destination_coords=(0, 0))
+    create_tiles_for_map(apps, map2a.id, 5, next_map_portal_tile_coords=(4, 0), portal_destination_coords=(2, 2))
+    create_tiles_for_map(apps, map3a.id, 10, next_map_portal_tile_coords=(9, 4), portal_destination_coords=(5, 5))
     create_tiles_for_map(apps, map4a.id, 4)
+
 
     create_tiles_for_map(apps, map1b.id, 3)
 

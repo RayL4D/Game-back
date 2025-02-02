@@ -29,13 +29,22 @@ class Tile(models.Model):
     east_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='east_connected_tile')
     west_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='west_connected_tile')
     portal_to_map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
-  
-    
+    portal_destination_tile = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='arrival_tiles')
+
     # Méthode pour changer de monde
     def change_map(self, game):
         if self.portal_to_map:
             game.map = self.portal_to_map
+
+            # Si une destination est définie, on place le joueur sur cette Tile
+            if self.portal_destination_tile:
+                game.current_tile = self.portal_destination_tile
+            else:
+                # Sinon, on prend la première Tile de la nouvelle map par défaut
+                game.current_tile = Tile.objects.filter(map=self.portal_to_map).first()
+
             game.save()
+
 
     
 class CharacterClass(models.Model):  # New model for character classes
@@ -171,7 +180,7 @@ class Game(models.Model):
 
         # Save the first visited tile upon creation
         if creating and self.current_tile:
-            next_tile = Tile.objects.filter(id=self.current_tile.id + 1).first()
+            #next_tile = Tile.objects.filter(id=self.current_tile.id + 1).first()
 
             TileSavedState.objects.create(
                 game=self,
@@ -179,7 +188,8 @@ class Game(models.Model):
                 tile=self.current_tile,
                 visited=True
             )
-            
+
+            """
             if next_tile:
                 TileSavedState.objects.create(
                     game=self,
@@ -189,7 +199,7 @@ class Game(models.Model):
                 )
             else:
                 print("La tile suivante n'existe pas.")
-
+            """
 
 
         if creating:
@@ -405,7 +415,6 @@ class TileSavedState(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     visited = models.BooleanField(default=False)
-
     class Meta:
         unique_together = (('game', 'user', 'tile'),)  # Ensure unique combination of game, user, and tile
 
