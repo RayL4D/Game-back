@@ -30,6 +30,7 @@ class WestMove(BaseMove):
         if not target_tile:
             return {"error": f"No tile in the {direction} direction"}
 
+        """
         # Vérifier si la tuile de destination est accessible (exemple de vérification)
         if target_tile.is_blocked:
             return {"error": "The path is blocked"}
@@ -37,7 +38,7 @@ class WestMove(BaseMove):
         # Vérifier si la porte est ouverte (vous pouvez personnaliser cette logique)
         if target_tile.door_is_locked:
             return {"error": "The door is locked"}
-        
+        """       
         # Vérifier s'il y a un PNJ sur la tuile actuelle
         if NPC.objects.filter(tile=current_tile).exists():
             return {"error": "You cannot move. There is an NPC on your current tile."}
@@ -45,7 +46,6 @@ class WestMove(BaseMove):
         # Déplacer le personnage
         self.game.current_tile = target_tile
         self.game.save()
-        self.game.save_game_state()
 
     
         # Vérifier et créer TileSavedState si nécessaire
