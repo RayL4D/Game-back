@@ -77,10 +77,10 @@ class Item(models.Model):
         ('ITMT_00009', 'ITMT_00009'),
         ])
     
-    chest_size = models.CharField(max_length=10, blank=True, null=True, choices=[
-        ('Small', 'Small'),
-        ('Medium', 'Medium'),
-        ('Large', 'Large'),
+    chest_size = models.CharField(max_length=255, blank=True, null=True, choices=[
+        ('ITMCS_00001', 'ITMCS_00001'),
+        ('ITMCS_00002', 'ITMCS_00002'),
+        ('ITMCS_00003', 'ITMCS_00003'),
     ])
 
     description = models.TextField(blank=True)  # Optional item description
@@ -365,8 +365,16 @@ class CharacterInventory(models.Model):
     is_equipped = models.BooleanField(default=False)
     primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
     secondary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_secondary_weapon')
-    # Ajout d'un champ pour gérer l'argent du joueur
-    money = models.PositiveIntegerField(default=0)
+    # Gestion de l'argent avec différenciation des types
+    money_type = models.CharField(max_length=255, choices=[
+        ('bronze', 'Bronze'),
+        ('silver', 'Silver'),
+        ('gold', 'Gold'),
+    ], blank=True, null=True)
+    
+    money = models.PositiveIntegerField(default=0)  # Quantité d'argent spécifique à chaque type
+
+
 class NPC(models.Model):
     name = models.CharField(max_length=255)
     hp = models.PositiveIntegerField(default=1)  # Monsters should have at least 1 HP

@@ -166,6 +166,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00001',
         item_type='ITMT_00001',
         description='ITMD_00001',
+        chest_size='ITMCS_00001',  # Taille du coffre Small
         tile=Tile.objects.get(map=map1a, posX=2, posY=2),
         attack_power = 1,
     )
@@ -174,6 +175,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00002',
         item_type='ITMT_00003',
         description='ITMD_00002',
+        chest_size='ITMCS_00001',  # Taille du coffre Small
         tile = Tile.objects.get(map=map1a, posX=1, posY=1),
         healing=10,    
         )
@@ -182,6 +184,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00003',
         item_type='ITMT_00002',
         description='ITMD_00003',
+        chest_size='ITMCS_00002',  # Taille du coffre Small
         tile = Tile.objects.get(map=map2a, posX=2, posY=3),
         defense=10,
     )
@@ -190,6 +193,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00004',
         item_type='ITMT_00004',
         description='ITMD_00004',
+        chest_size='ITMCS_00001',  # Taille du coffre Small
         tile = Tile.objects.get(map=map3a, posX=5, posY=2),
         healing=2,
         )
@@ -198,6 +202,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00005',
         item_type='ITMT_00007',
         description='ITMD_00005',
+        chest_size='ITMCS_00003',  
         tile = Tile.objects.get(map=map4a, posX=1, posY=1),
         )
 
@@ -205,6 +210,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00006',
         item_type='ITMT_00002',
         description='ITMD_00006',
+        chest_size='ITMCS_00002',
         tile = Tile.objects.get(map=map1b, posX=1, posY=0),
         )
 
@@ -212,6 +218,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00007',
         item_type='ITMT_00007',
         description='ITMD_00007',
+        chest_size='ITMCS_00002',
         tile = Tile.objects.get(map=map2a, posX=0, posY=0),
         
     )
@@ -220,6 +227,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00008',
         item_type='ITMT_00002',
         description='ITMD_00008',
+        chest_size='ITMCS_00003',
         tile = Tile.objects.get(map=map3a, posX=8, posY=3),
         defense=20,
     )
@@ -227,6 +235,7 @@ def add_initial_data(apps, schema_editor):
         name='ITMN_00009',
         item_type='ITMT_00001',
         description='ITMD_00009',
+        chest_size='ITMCS_00003',
         tile = Tile.objects.get(map=map1a, posX=2, posY=1),
         attack_power=10,
     )
