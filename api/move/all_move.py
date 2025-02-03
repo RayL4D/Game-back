@@ -4,7 +4,7 @@ from ..models import Tile, NPC
 from rest_framework import status
 from rest_framework.response import Response
 
-class MoveAction(BaseAction):
+class MoveAction():
     def validate(self):
         direction = self.request_data.get('direction')
         if not direction:

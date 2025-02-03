@@ -15,56 +15,20 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
 from rest_framework import status
-from .actions.attack_simple_action import AttackSimpleAction
+from .actions.attack_primary_weapon import AttackPrimaryWeaponAction
+from .actions.attack_secondary_weapon import AttackSecondaryWeaponAction
+from .actions.attack_skill_action import AttackSkillAction
 from .actions.take_action import TakeAction
+from .actions.heal_action import HealAction
 from .move.east_move import EastMove
 from .move.west_move import WestMove
 from .move.north_move import NorthMove
 from .move.south_move import SouthMove
 from django.core import serializers
-
-class GameActionsViewSet(viewsets.ViewSet):
-    """
-    ViewSet pour gérer toutes les actions du jeu.
-    """
-
-    @action(detail=False, methods=['post'])
-    def perform_action(self, request):
-        game_id = request.data.get('game_id')
-        action_type = request.data.get('action_type')
-
-        try:
-            game = Game.objects.get(pk=game_id, user=request.user)
-        except Game.DoesNotExist:
-            return Response({"error": "Game not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        action_classes = {
-            'attack': AttackSimpleAction,
-            'take': TakeAction,
-            'east_move': EastMove,
-            'west_move': WestMove,
-            'north_move': NorthMove,
-            'south_move': SouthMove,
-            # Ajoutez d'autres actions ici
-        }
-
-        action_class = action_classes.get(action_type)
-        if action_class:
-            action = action_class(game, request.data)
-            action.validate()
-            result = action.execute()
-            return action.handle_response(result)
-        else:
-            return Response({"error": "Invalid action type"}, status=status.HTTP_400_BAD_REQUEST)
-        
-        
+from drf_yasg import openapi
+from .move.jump_move import JumpMove            
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework.response import Response
-from django.contrib.auth.models import User
-from .serializers import UserSerializer 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -179,7 +143,10 @@ class GameViewSet(viewsets.ModelViewSet):
         """
     
     def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+        if self.request.user.is_authenticated:
+            return self.queryset.filter(user=self.request.user)
+        return self.queryset.none()  # Retourne un queryset vide pour les utilisateurs non authentifiés
+
 
     @action(detail=False, methods=['get'])
     def get_saved_games(self, request):
@@ -187,6 +154,195 @@ class GameViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(saved_games, many=True)
         return Response(serializer.data)
     
+
+
+
+class GameActionViewSet(viewsets.ViewSet):
+    """
+    ViewSet pour gérer les actions du joueur (attaques, soins, prise d'objets, etc.).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Exécute une action du joueur (attaquer, ramasser un objet, se soigner).",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['game_id', 'action'],
+            properties={
+                'game_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID de la partie en cours."
+                ),
+                'action': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=['attack_primary_weapon', 'attack_secondary_weapon', 'attack_skill', 'take_item', 'heal'],
+                    description="Type d'action : attaque, ramassage d'objet ou soin."
+                ),
+                'npc_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="(Optionnel) ID du PNJ cible pour une attaque."
+                ),
+                'skill_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="(Optionnel) ID de la compétence utilisée pour une attaque."
+                ),
+                'item_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="(Optionnel) ID de l'objet à ramasser."
+                ),
+            },
+        ),
+        responses={
+            200: openapi.Response(
+                description="Succès de l'action",
+                examples={
+                    "application/json": {
+                        "message": "Vous avez utilisé une Potion et récupéré 20 points de vie."
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Requête invalide",
+                examples={
+                    "application/json": {"error": "Invalid action type"}
+                }
+            ),
+            404: openapi.Response(
+                description="Game non trouvé",
+                examples={
+                    "application/json": {"error": "Game not found"}
+                }
+            ),
+        }
+    )
+    @action(detail=False, methods=['post'])
+    def perform_action(self, request):
+        game_id = request.data.get('game_id')
+        action_type = request.data.get('action')  
+        npc_id = request.data.get('npc_id')
+        skill_id = request.data.get('skill_id')
+        item_id = request.data.get('item_id')
+
+        if not game_id or not action_type:
+            return Response({"error": "game_id and action are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            game = Game.objects.get(pk=game_id, user=request.user)
+        except Game.DoesNotExist:
+            return Response({"error": "Game not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        action_classes = {
+            'attack_primary_weapon': AttackPrimaryWeaponAction,
+            'attack_secondary_weapon': AttackSecondaryWeaponAction,
+            'attack_skill': AttackSkillAction,
+            'take_item': TakeAction,
+            'heal': HealAction,  # Ajout du heal
+        }
+
+        action_class = action_classes.get(action_type)
+        if not action_class:
+            return Response({"error": "Invalid action type"}, status=status.HTTP_400_BAD_REQUEST)
+
+        action_instance = action_class(game, request.data)
+        try:
+            action_instance.validate()
+            result = action_instance.execute()
+            return action_instance.handle_response(result)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+class GameMoveViewSet(viewsets.ViewSet):
+    """
+    ViewSet pour gérer les mouvements du joueur.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Permet au joueur de se déplacer sur la carte en fonction d'une direction donnée.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['game_id', 'direction'],
+            properties={
+                'game_id': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID de la partie en cours."
+                ),
+                'direction': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    enum=['east', 'west', 'north', 'south', 'jump'],
+                    description="Direction du déplacement : 'east', 'west', 'north', 'south' pour les déplacements classiques, 'jump' pour utiliser un portail."
+                ),
+                'use_portal': openapi.Schema(
+                    type=openapi.TYPE_BOOLEAN,
+                    description="(Optionnel) Utilisé uniquement avec 'jump'. Si 'true', le joueur utilise le portail de la tuile actuelle."
+                ),
+            },
+        ),
+        responses={
+            200: openapi.Response(
+                description="Succès du déplacement",
+                examples={
+                    "application/json": {
+                        "success": "Move successful",
+                        "new_position": {"posX": 2, "posY": 3},
+                        "tile_data": {"first_visit": False}
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Requête invalide",
+                examples={
+                    "application/json": {"error": "Invalid direction"}
+                }
+            ),
+            404: openapi.Response(
+                description="Game non trouvé",
+                examples={
+                    "application/json": {"error": "Game not found"}
+                }
+            ),
+        }
+    )
+    @action(detail=False, methods=['post'])
+    def perform_move(self, request):
+        game_id = request.data.get('game_id')
+        direction = request.data.get('direction')  # Ex: "east", "west", "north", "south", "jump"
+        use_portal = request.data.get('use_portal', False)  # Optionnel pour JumpMove
+
+        if not game_id or not direction:
+            return Response({"error": "game_id and direction are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            game = Game.objects.get(pk=game_id, user=request.user)
+        except Game.DoesNotExist:
+            return Response({"error": "Game not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Mapping des directions aux classes de mouvement
+        move_classes = {
+            'east': EastMove,
+            'west': WestMove,
+            'north': NorthMove,
+            'south': SouthMove,
+            'jump': JumpMove,
+        }
+
+        move_class = move_classes.get(direction)
+        if not move_class:
+            return Response({"error": "Invalid direction"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Exécuter l'action de déplacement
+        move_action = move_class(game, request.data)
+        try:
+            move_action.validate()
+            result = move_action.execute()
+            return move_action.handle_response(result)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class CharacterClassViewSet(viewsets.ModelViewSet):
     queryset = CharacterClass.objects.all()
     serializer_class = CharacterClassSerializer

@@ -1,7 +1,7 @@
 from ..models import Tile, TileSavedState
-from ..actions.base_action import BaseAction
+from .base_move import BaseMove
 
-class JumpMove(BaseAction):
+class JumpMove(BaseMove):
     def validate(self):
         # Vérifier si le joueur est sur une tuile avec un portail
         current_tile = self.game.current_tile

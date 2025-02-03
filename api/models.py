@@ -76,6 +76,13 @@ class Item(models.Model):
         ('ITMT_00008', 'ITMT_00008'),
         ('ITMT_00009', 'ITMT_00009'),
         ])
+    
+    chest_size = models.CharField(max_length=10, blank=True, null=True, choices=[
+        ('Small', 'Small'),
+        ('Medium', 'Medium'),
+        ('Large', 'Large'),
+    ])
+
     description = models.TextField(blank=True)  # Optional item description
     attack_power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance d'attaque de l'arme
     defense = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Valeur de défense de l'armure
@@ -358,7 +365,8 @@ class CharacterInventory(models.Model):
     is_equipped = models.BooleanField(default=False)
     primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
     secondary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_secondary_weapon')
-    
+    # Ajout d'un champ pour gérer l'argent du joueur
+    money = models.PositiveIntegerField(default=0)
 class NPC(models.Model):
     name = models.CharField(max_length=255)
     hp = models.PositiveIntegerField(default=1)  # Monsters should have at least 1 HP

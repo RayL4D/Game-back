@@ -1,9 +1,9 @@
 from ..models import Tile, NPC, TileSavedState
-from ..actions.base_action import BaseAction
+from .base_move import BaseMove
 from rest_framework import status
 from rest_framework.response import Response
 
-class EastMove(BaseAction):
+class EastMove(BaseMove):
     def validate(self):
         direction = self.request_data.get('direction')
         if not direction:
