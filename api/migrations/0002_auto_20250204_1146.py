@@ -78,7 +78,7 @@ def add_initial_data(apps, schema_editor):
     characterclass5 = CharacterClass.objects.create(name='CHARCN_00005', description='CHARCD_00005')
 
     # Créer des tuiles pour chaque monde avec portails et destination d'arrivée  
-    create_tiles_for_map(apps, map1a.id, 3, next_map_portal_tile_coords=(2, 1), portal_destination_coords=(0, 0))
+    create_tiles_for_map(apps, map1a.id, 3, next_map_portal_tile_coords=(2, 2), portal_destination_coords=(0, 0))
     create_tiles_for_map(apps, map2a.id, 5, next_map_portal_tile_coords=(4, 0), portal_destination_coords=(2, 2))
     create_tiles_for_map(apps, map3a.id, 10, next_map_portal_tile_coords=(9, 4), portal_destination_coords=(5, 5))
     create_tiles_for_map(apps, map4a.id, 4)
