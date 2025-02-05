@@ -18,17 +18,16 @@ class Map(models.Model):  # Added model for Map
     def get_image_path(self):
         return f'/img/Map/map{self.id}.png'
 
-
 class Tile(models.Model):
-    map= models.ForeignKey(Map, on_delete=models.CASCADE, null=True, blank=True)
+    map = models.ForeignKey(Map, on_delete=models.CASCADE, null=True, blank=True)
     posX = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     posY = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     visited = models.BooleanField(default=False)  # Flag to track if the tile has been visited
-    north_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='north_connected_tile')
-    south_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='south_connected_tile')
-    east_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='east_connected_tile')
-    west_door = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='west_connected_tile')
-    portal_to_map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles') # Add this field    
+    north_door_level = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
+    south_door_level = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
+    east_door_level = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
+    west_door_level = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
+    portal_to_map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles')
     portal_destination_tile = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='arrival_tiles')
 
     # Méthode pour changer de monde

@@ -28,6 +28,17 @@ def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=No
                             map=next_map, posX=portal_destination_coords[0], posY=portal_destination_coords[1]
                         ).first()
                         tile.portal_destination_tile = destination_tile
+
+                    # Mettre à jour le niveau de la porte à au moins 1
+                    if tile.north_door_level == 0:
+                        tile.north_door_level = 1
+                    if tile.south_door_level == 0:
+                        tile.south_door_level = 1
+                    if tile.east_door_level == 0:
+                        tile.east_door_level = 1
+                    if tile.west_door_level == 0:
+                        tile.west_door_level = 1
+
                 except Map.DoesNotExist:
                     pass  # Pas de map suivante, donc pas de portail
 
@@ -38,13 +49,17 @@ def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=No
         for x in range(grid_size):
             tile = tiles[(x, y)]
             if y < grid_size - 1:
-                tile.east_door = tiles[(x, y + 1)]
+                tile.east_door_level = max(tile.east_door_level, 1)
+                tiles[(x, y + 1)].west_door_level = max(tiles[(x, y + 1)].west_door_level, 1)
             if x < grid_size - 1:
-                tile.south_door = tiles[(x + 1, y)]
+                tile.south_door_level = max(tile.south_door_level, 1)
+                tiles[(x + 1, y)].north_door_level = max(tiles[(x + 1, y)].north_door_level, 1)
             if y > 0:
-                tile.west_door = tiles[(x, y - 1)]
+                tile.west_door_level = max(tile.west_door_level, 1)
+                tiles[(x, y - 1)].east_door_level = max(tiles[(x, y - 1)].east_door_level, 1)
             if x > 0:
-                tile.north_door = tiles[(x - 1, y)]
+                tile.north_door_level = max(tile.north_door_level, 1)
+                tiles[(x - 1, y)].south_door_level = max(tiles[(x - 1, y)].south_door_level, 1)
             tile.save()
 
 def add_initial_data(apps, schema_editor):
