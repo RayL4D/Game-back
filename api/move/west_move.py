@@ -32,27 +32,15 @@ class WestMove(BaseMove):
         current_tile = self.game.current_tile
 
         # Calculer les nouvelles coordonnées en fonction de la direction
+        new_posX, new_posY = current_tile.posX, current_tile.posY
         if direction == 'west':
-            new_posX = current_tile.posX - 1
-            new_posY = current_tile.posY
+            new_posX -= 1
 
         # Vérifier la nouvelle tuile
         target_tile = Tile.objects.filter(map=current_tile.map, posX=new_posX, posY=new_posY).first()
 
         if not target_tile:
             return {"error": f"No tile in the {direction} direction"}
-
-        # Vérifier si la tuile de destination est accessible (exemple de vérification)
-        if target_tile.is_blocked:
-            return {"error": "The path is blocked"}
-
-        # Vérifier si la porte est ouverte (vous pouvez personnaliser cette logique)
-        if target_tile.door_is_locked:
-            return {"error": "The door is locked"}
-        
-        # Vérifier s'il y a un PNJ sur la tuile actuelle
-        if NPC.objects.filter(tile=current_tile).exists():
-            return {"error": "You cannot move. There is an NPC on your current tile."}
 
         # Déplacer le personnage
         self.game.current_tile = target_tile

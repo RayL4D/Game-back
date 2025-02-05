@@ -15,7 +15,7 @@ class EastMove(BaseMove):
 
         # Vérifier si la tuile actuelle a une porte dans la direction indiquée
         current_tile = self.game.current_tile
-        door_level_field = f"{direction}_door_id"
+        door_level_field = f"{direction}_door_level"
         door_level = getattr(current_tile, door_level_field)
 
         if door_level == 0:
@@ -32,15 +32,15 @@ class EastMove(BaseMove):
         current_tile = self.game.current_tile
 
         # Calculer les nouvelles coordonnées en fonction de la direction
+        new_posX, new_posY = current_tile.posX, current_tile.posY
         if direction == 'east':
-            new_posX = current_tile.posX + 1
-            new_posY = current_tile.posY
+            new_posX += 1
 
         # Vérifier la nouvelle tuile
         target_tile = Tile.objects.filter(map=current_tile.map, posX=new_posX, posY=new_posY).first()
 
         if not target_tile:
-            return {"error": f"No tile in the {direction} direction"}
+                return {"status": "is ko!", "error_code": "NO_TILE"}
 
         # Déplacer le personnage
         self.game.current_tile = target_tile

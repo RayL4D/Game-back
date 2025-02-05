@@ -31,10 +31,10 @@ class SouthMove(BaseMove):
         direction = self.request_data.get('direction')
         current_tile = self.game.current_tile
 
-# Calculer les nouvelles coordonnées en fonction de la direction
-        if direction == 'west':
-            new_posX = current_tile.posX 
-            new_posY = current_tile.posY + 1
+        # Calculer les nouvelles coordonnées en fonction de la direction
+        new_posX, new_posY = current_tile.posX, current_tile.posY
+        if direction == 'south':
+            new_posY += 1
 
         # Vérifier la nouvelle tuile
         target_tile = Tile.objects.filter(map=current_tile.map, posX=new_posX, posY=new_posY).first()
@@ -43,9 +43,6 @@ class SouthMove(BaseMove):
         if not target_tile:
             return {"error": f"No tile in the {direction} direction"}
 
-        # Vérifier si la tuile de destination est accessible (exemple de vérification)
-        if target_tile.is_blocked:
-            return {"error": "The path is blocked"}
 
         # Déplacer le personnage
         self.game.current_tile = target_tile
