@@ -15,17 +15,29 @@ class WestMove(BaseMove):
 
         # Vérifier si la tuile actuelle a une porte dans la direction indiquée
         current_tile = self.game.current_tile
-        door_field = f"{direction}_door_id"
-        if not getattr(current_tile, door_field): 
+        door_level_field = f"{direction}_door_level"
+        door_level = getattr(current_tile, door_level_field)
+
+        if door_level == 0:
             raise ValueError(f"No door in the {direction} direction")
+
+        # Vérifier si une clé est nécessaire pour les portes de niveau 2 ou 3
+        if door_level > 1:
+            key_level = self.request_data.get('key_level', 0)
+            if key_level < door_level:
+                raise ValueError(f"A key of level {door_level} or higher is required to move in the {direction} direction")
 
     def execute(self):
         direction = self.request_data.get('direction')
         current_tile = self.game.current_tile
 
-        # Vérifier la porte et la destination
+        # Calculer les nouvelles coordonnées en fonction de la direction
         if direction == 'west':
-            target_tile = current_tile.west_door
+            new_posX = current_tile.posX - 1
+            new_posY = current_tile.posY
+
+        # Vérifier la nouvelle tuile
+        target_tile = Tile.objects.filter(map=current_tile.map, posX=new_posX, posY=new_posY).first()
 
         if not target_tile:
             return {"error": f"No tile in the {direction} direction"}
