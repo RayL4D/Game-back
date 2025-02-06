@@ -49,15 +49,18 @@ class BaseMove:
     def execute(self, new_posX, new_posY):
         
         current_tile = self.game.current_tile
+        print(f"Nouvelle position calculée : ({new_posX}, {new_posY})")
 
         # Vérifier la nouvelle tuile
         target_tile = Tile.objects.filter(map=current_tile.map, posX=new_posX, posY=new_posY).first()
 
-        if not target_tile:
+        if target_tile == None:
             self.error_codes.append("D500")
+            self.is_ok = False
             return
 
-        # Déplacer le personnage
+        # Déplacer le personnage sur la nouvelle tuile
+        print(f"Changement de tuile : {current_tile.id} -> {target_tile.id}")  # Debugging
         self.game.current_tile = target_tile
         self.game.save()
         self.game.save_game_state()
