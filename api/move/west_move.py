@@ -13,6 +13,6 @@ class WestMove(BaseMove):
         # Calculer les nouvelles coordonnées en fonction de la direction
         new_posX, new_posY = current_tile.posX, current_tile.posY
         if direction == 'west':
-            new_posX -= 1
+            new_posY -= 1
 
         return super().execute(new_posX, new_posY)
