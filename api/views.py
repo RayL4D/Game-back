@@ -311,7 +311,7 @@ class GameMoveViewSet(viewsets.ViewSet):
     def perform_move(self, request):
         game_id = request.data.get('game_id')
         direction = request.data.get('direction')  # Ex: "east", "west", "north", "south", "jump"
-        use_portal = request.data.get('use_portal', False)  # Optionnel pour JumpMove
+        # use_portal = request.data.get('use_portal', False)  # Optionnel pour JumpMove!
 
         if not game_id or not direction:
             return Response({"error": "game_id and direction are required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -337,7 +337,7 @@ class GameMoveViewSet(viewsets.ViewSet):
         # Exécuter l'action de déplacement
         move_action = move_class(game, request.data)
         try:
-            move_action.validate()
+            move_action.validate(direction)
             result = move_action.execute()
             return move_action.handle_response(result)
         except ValueError as e:

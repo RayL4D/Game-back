@@ -13,12 +13,13 @@ class BaseMove:
     def validate(self, valid_directions):
         direction = self.request_data.get('direction')
         if not direction:
-            self.error_codes.append("D001")
+            self.logger.error("Direction is required")
+            self.error_codes.append("D100")
             self.is_ok = False
             return
 
         if direction not in valid_directions:
-            self.error_codes.append("D002")
+            self.error_codes.append("D200")
             self.is_ok = False
             return
 
@@ -28,12 +29,12 @@ class BaseMove:
         door_level = getattr(current_tile, door_level_field, None)
 
         if door_level is None:
-            self.error_codes.append("D003")
+            self.error_codes.append("D300")
             self.is_ok = False
             return
 
         if door_level == 0:
-            self.error_codes.append("D004")
+            self.error_codes.append("D400")
             self.is_ok = False
             return
 
@@ -41,7 +42,7 @@ class BaseMove:
         if door_level > 1:
             key_level = self.request_data.get('key_level', 0)
             if key_level < door_level:
-                self.error_codes.append("D006")
+                self.error_codes.append("D600")
                 self.is_ok = False
                 return
 
@@ -53,7 +54,7 @@ class BaseMove:
         target_tile = Tile.objects.filter(map=current_tile.map, posX=new_posX, posY=new_posY).first()
 
         if not target_tile:
-            self.error_codes.append("D005")
+            self.error_codes.append("D500")
             return
 
         # Déplacer le personnage
@@ -74,12 +75,10 @@ class BaseMove:
             tile_saved_state.visited = True
             tile_saved_state.save()
 
-        return
-
+        
     def handle_response(self, result):
         """Méthode pour gérer la réponse de l'action."""
-        if result.get('status') == "is ko!":
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        if self.is_ok:
+            return Response({self.is_ok}, status=status.HTTP_200_OK)
         else:
-            serializer = GameSerializer(self.game)
-            return Response(serializer.data)
+            return Response({"is_ok": False, "error_codes": self.error_codes}, status=status.HTTP_400_BAD_REQUEST)
