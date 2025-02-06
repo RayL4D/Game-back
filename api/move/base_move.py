@@ -79,6 +79,6 @@ class BaseMove:
     def handle_response(self, result):
         """Méthode pour gérer la réponse de l'action."""
         if self.is_ok:
-            return Response({self.is_ok}, status=status.HTTP_200_OK)
+            return Response({"is_ok": self.is_ok}, status=status.HTTP_200_OK)
         else:
-            return Response({"is_ok": False, "error_codes": self.error_codes}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"is_ok": self.is_ok, "error_codes": self.error_codes}, status=status.HTTP_400_BAD_REQUEST)
