@@ -80,15 +80,15 @@ class CharacterSkillSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ItemSerializer(serializers.ModelSerializer):
-    image_path = serializers.SerializerMethodField()  # Add this line
     class Meta:
         model = Item
         fields = '__all__'
         
-    def get_image_path(self, obj):
-        return obj.get_image_path() 
     
 class CharacterInventorySerializer(serializers.ModelSerializer):
+    bag = ItemSerializer(many=True)  # Utilise le serializer Item pour lister les items
+    primary_weapon = ItemSerializer()  # Ajoute un serializer pour primary_weapon
+
     class Meta:
         model = CharacterInventory
         fields = '__all__'

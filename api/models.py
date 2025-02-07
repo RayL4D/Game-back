@@ -7,6 +7,7 @@ from django.contrib.auth.models import User  # Import User model for potential u
 from django.utils import timezone
 import datetime 
 import json
+from django.core.exceptions import ValidationError
 
 # Create your models here.
     
@@ -74,22 +75,19 @@ class Item(models.Model):
         ('ITMT_00007', 'ITMT_00007'),
         ('ITMT_00008', 'ITMT_00008'),
         ('ITMT_00009', 'ITMT_00009'),
-        ])
-    
-    chest_size = models.CharField(max_length=255, blank=True, null=True, choices=[
-        ('ITMCS_00001', 'ITMCS_00001'),
-        ('ITMCS_00002', 'ITMCS_00002'),
-        ('ITMCS_00003', 'ITMCS_00003'),
-    ])
+        ('ITMT_00010', 'ITMT_00010'),
+        ] )
 
     description = models.TextField(blank=True)  # Optional item description
-    attack_power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance d'attaque de l'arme
-    defense = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Valeur de défense de l'armure
-    healing = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Valeur de soin de la potion
+    attack_power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Attack power for weapons
+    defense = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Defense value for armor
+    healing = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Healing value for consumables
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
 
-    def get_image_path(self):
-        return f'/img/Items/item{self.id}.png'
+
+    # def get_image_path(self):
+    #     return f'https://rayl4d.github.io/GameImages/Item/{self.id}'
+
     
 class Game(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
@@ -102,9 +100,12 @@ class Game(models.Model):
     experience = models.PositiveIntegerField(default=1)  # Experience points
     level = models.PositiveIntegerField(default=1)  # Niveau du personnage
     skill_points = models.IntegerField(default=0)
+    bronze = models.PositiveIntegerField(default=0)
+    silver = models.PositiveIntegerField(default=0)
+    gold = models.PositiveIntegerField(default=0)
 
     current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game') 
-    inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'item'))    
+    inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'bag'))    
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
     session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(default=datetime.datetime.now)
@@ -210,10 +211,12 @@ class Game(models.Model):
 
         if creating:
             self.assign_class_skills()  # Assign class skills
+            self.create_default_inventory()  # Attribuer l'équipement par défaut
 
         # Vérifier si le personnage est mort après la contre-attaque
         if self.hp <= 0:
             self.respawn()  # Appeler une méthode pour gérer la réapparition
+        
 
     def respawn(self):
         # Logique de réapparition
@@ -222,6 +225,29 @@ class Game(models.Model):
         self.save()
         # Vous pouvez également réinitialiser d'autres aspects du personnage ici si nécessaire
 
+    def create_default_inventory(self):
+        """Ajoute des objets par défaut à l'inventaire du joueur lors de la création de la partie."""
+        # Chercher les items par leur nom
+        default_items = Item.objects.filter(name__in=["Wooden Sword", "Healing Potion"])
+
+        # Création de l'inventaire du personnage
+        character_inventory = CharacterInventory.objects.create(game=self)
+
+        # Chercher l'item "Wooden Sword" pour l'assigner comme primary_weapon
+        wooden_sword = default_items.filter(name="Wooden Sword").first()
+        if wooden_sword:
+            character_inventory.primary_weapon = wooden_sword  # Assigner l'item à la primary_weapon
+            character_inventory.save()  # Sauvegarder la modification de l'inventaire
+
+        # Ajouter les autres objets à l'inventaire (ex. Healing Potion)
+        for item in default_items:
+            character_inventory.bag.add(item)
+
+        character_inventory.save()
+
+
+
+        
     def get_default_hp(self):
         # Define default HP based on character class
         class_hp = {
@@ -255,49 +281,6 @@ class Game(models.Model):
         }
         return class_stats.get(self.character_class.name, 1)
     
-    def equip_weapon(self, item):
-        if not item or not isinstance(item, Item):
-            return
-
-        if item.item_type != 'Weapon':
-            print(f"Cannot equip {item.name} as a weapon (wrong item type)")
-            return
-
-        # Unequip current weapon if necessary
-        if self.primary_weapon:
-            self.primary_weapon = None
-        elif self.secondary_weapon:
-            self.secondary_weapon = None
-
-        # Equip the new weapon (check for empty slot)
-        if not self.primary_weapon:
-            self.primary_weapon = item
-        elif not self.secondary_weapon:
-            self.secondary_weapon = item
-        self.save()
-
-        # Update equipped flag in CharacterInventory (if applicable)
-        if hasattr(self, 'characterinventory_set'):
-            for entry in self.characterinventory_set.filter(item=item):
-                entry.is_equipped = True
-                entry.save()
-
-    def unequip_weapon(self, item):
-        if not item or not isinstance(item, Item):
-            return
-
-        if item == self.primary_weapon:
-            self.primary_weapon = None
-        elif item == self.secondary_weapon:
-            self.secondary_weapon = None
-
-        self.save()
-
-        # Update equipped flag in CharacterInventory (if applicable)
-        if hasattr(self, 'characterinventory_set'):
-            for entry in self.characterinventory_set.filter(item=item):
-                entry.is_equipped = False
-                entry.save()
         
     def level_up(self):
         # Vérifie si le joueur a assez d'expérience pour passer au niveau supérieur
@@ -356,22 +339,63 @@ class CharacterSkill(models.Model):
     level = models.PositiveIntegerField(default=1)  # Niveau de compétence
     # Add fields for skill level, effects, etc. (optional)
 
-
 class CharacterInventory(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    is_equipped = models.BooleanField(default=False)
+    bag = models.ManyToManyField(Item, related_name='character_inventory')  # Utilisation de ManyToMany pour permettre plusieurs items
+
     primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
     secondary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_secondary_weapon')
-    # Gestion de l'argent avec différenciation des types
-    money_type = models.CharField(max_length=255, choices=[
-        ('bronze', 'Bronze'),
-        ('silver', 'Silver'),
-        ('gold', 'Gold'),
-    ], blank=True, null=True)
-    
-    money = models.PositiveIntegerField(default=0)  # Quantité d'argent spécifique à chaque type
+    helmet = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_helmet')
+    chestplate = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_chestplate')
+    leggings = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_leggings')
+    boots = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_boots')
+
+    def equip_item(self, item):
+        """Équipe un item en remplaçant l'ancien si nécessaire"""
+        equip_slots = {
+            'ITMT_00001': ['primary_weapon', 'secondary_weapon'],  # Weapons
+            'ITMT_00002': ['helmet'],
+            'ITMT_00003': ['chestplate'],
+            'ITMT_00004': ['leggings'],
+            'ITMT_00005': ['boots'],
+        }
+
+        if item.item_type not in equip_slots:
+            raise ValidationError("Cet item ne peut pas être équipé.")
+
+        # Gestion spéciale pour les armes (deux slots possibles)
+        if item.item_type == 'ITMT_00001':  # Weapon
+            if self.primary_weapon is None:
+                self.primary_weapon = item
+            elif self.secondary_weapon is None:
+                self.secondary_weapon = item
+            else:
+                # Remplace l'arme primaire si les deux sont pleins
+                self.primary_weapon = item  
+        else:
+            # Remplace directement l'ancien équipement
+            setattr(self, equip_slots[item.item_type][0], item)
+
+        self.save()
+
+    def unequip_item(self, item):
+        """Déséquipe un item s'il est équipé"""
+        slots = ['primary_weapon', 'secondary_weapon', 'helmet', 'chestplate', 'leggings', 'boots']
+        for slot in slots:
+            if getattr(self, slot) == item:
+                setattr(self, slot, None)
+                self.save()
+                return True
+        return False  # Item non équipé
+
+    def add_item(self, item):
+        """Ajoute un item à l'inventaire"""
+        self.items.add(item)
+
+    def remove_item(self, item):
+        """Retire un item de l'inventaire et le déséquipe s'il était équipé"""
+        self.unequip_item(item)  # Vérifie si l'item est équipé et le retire
+        self.items.remove(item)
 
 
 class NPC(models.Model):
