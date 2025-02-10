@@ -228,13 +228,13 @@ class Game(models.Model):
     def create_default_inventory(self):
         """Ajoute des objets par défaut à l'inventaire du joueur lors de la création de la partie."""
         # Chercher les items par leur nom
-        default_items = Item.objects.filter(name__in=["Wooden Sword", "Healing Potion"])
+        default_items = Item.objects.filter(name__in=["ITMN_00001", "ITMN_00006"])
 
         # Création de l'inventaire du personnage
         character_inventory = CharacterInventory.objects.create(game=self)
 
         # Chercher l'item "Wooden Sword" pour l'assigner comme primary_weapon
-        wooden_sword = default_items.filter(name="Wooden Sword").first()
+        wooden_sword = default_items.filter(name="ITMN_00001").first()
         if wooden_sword:
             character_inventory.primary_weapon = wooden_sword  # Assigner l'item à la primary_weapon
             character_inventory.save()  # Sauvegarder la modification de l'inventaire

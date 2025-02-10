@@ -180,16 +180,16 @@ def add_initial_data(apps, schema_editor):
 
     # Épée en bois
     wooden_sword = Item.objects.create(
-        name='Wooden Sword',
+        name='ITMN_00001',
         item_type='ITMT_00001',  # Weapon
-        description='A simple wooden sword, not very strong but easy to use.',
+        description='ITMD_00001',
         attack_power=5,
         tile=Tile.objects.get(map=map1a, posX=0, posY=0),
     )
 
     # Casque en bois
     wooden_helmet = Item.objects.create(
-        name='Wooden Helmet',
+        name='ITMN_00002',
         item_type='ITMT_00002',  # Helmet
         description='A basic helmet made from wood. Provides minimal protection.',
         defense=2,
@@ -198,69 +198,69 @@ def add_initial_data(apps, schema_editor):
 
     # Plastron en bois
     wooden_chestplate = Item.objects.create(
-        name='Wooden Chestplate',
+        name='ITMN_00003',
         item_type='ITMT_00003',  # Chestplate
-        description='A wooden chestplate that offers basic protection.',
+        description='ITMD_00003',
         defense=5,
         tile=Tile.objects.get(map=map1a, posX=2, posY=2),
     )
 
     # Jambières en bois
     wooden_leggings = Item.objects.create(
-        name='Wooden Leggings',
+        name='ITMN_00004',
         item_type='ITMT_00004',  # Leggings
-        description='Leggings made from wood, offering minimal defense.',
+        description='ITMD_00004',
         defense=3,
         tile=Tile.objects.get(map=map4a, posX=2, posY=2),
     )
 
     # Bottes en bois
     wooden_boots = Item.objects.create(
-        name='Wooden Boots',
+        name='ITMN_00005',
         item_type='ITMT_00005',  # Boots
-        description='Wooden boots, not very durable but light.',
+        description='ITMD_00005',
         defense=1,
         tile=Tile.objects.get(map=map1a, posX=2, posY=2),
     )
 
     # Consommable (exemple : potion)
     potion1 = Item.objects.create(
-        name='Healing Potion',
+        name='ITMN_00006',
         item_type='ITMT_00006',  # Consumable
-        description='A potion that heals the user for 20 HP.',
+        description='ITMD_00006',
         healing=20,
         tile=Tile.objects.get(map=map2a, posX=2, posY=3),
     )
 
     # Objet de quête
     scroll1 = Item.objects.create(
-        name='Scroll of Wisdom',
+        name='ITMN_00007',
         item_type='ITMT_00007',  # Quest
-        description='A scroll that contains ancient wisdom.',
+        description='ITMD_00007',
         tile=Tile.objects.get(map=map2a, posX=4, posY=3),
     )
 
     # Objet inutilisable (par exemple, un déchet)
     junk1 = Item.objects.create(
-        name='Broken Sword',
+        name='ITMN_00008',
         item_type='ITMT_00008',  # Junk
-        description='A sword that is too damaged to be of any use.',
+        description='ITMD_00008',
         tile=Tile.objects.get(map=map2a, posX=1, posY=3),
     )
 
     # Manuscrit
     manuscript1 = Item.objects.create(
-        name='Ancient Manuscript',
+        name='ITMN_00009',
         item_type='ITMT_00009',  # Manuscript
-        description='A manuscript containing old secrets.',
+        description='ITMD_00009',
         tile=Tile.objects.get(map=map2a, posX=0, posY=1),
     )
 
     # Clé
     key1 = Item.objects.create(
-        name='Dungeon Key',
+        name='ITMN_00010',
         item_type='ITMT_00010',  # Key
-        description='A key that unlocks the dungeon door.',
+        description='ITMD_00010',
         tile=Tile.objects.get(map=map1a, posX=2, posY=1),
     )
 
