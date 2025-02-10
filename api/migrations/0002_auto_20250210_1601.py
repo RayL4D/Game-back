@@ -206,11 +206,12 @@ def add_initial_data(apps, schema_editor):
         tile=Tile.objects.get(map=map1a, posX=0, posY=0),
     )
 
+
     # Casque en bois
     wooden_helmet = Item.objects.create(
         name='ITMN_00002',
-        item_type='ITMT_00002',  # Helmet
-        description='A basic helmet made from wood. Provides minimal protection.',
+        item_type='ITMN_00002',  # Helmet
+        description='ITMD_00002',
         defense=2,
         tile=Tile.objects.get(map=map1a, posX=0, posY=1),
     )
@@ -283,6 +284,14 @@ def add_initial_data(apps, schema_editor):
         tile=Tile.objects.get(map=map1a, posX=2, posY=1),
     )
 
+    # lance en bois
+    wooden_spear = Item.objects.create(
+        name='ITMN_00011',
+        item_type='ITMT_00001',  # Weapon
+        description='ITMD_00011',
+        attack_power=5,
+        tile=Tile.objects.get(map=map1a, posX=0, posY=0),
+    )
 
 class Migration(migrations.Migration):
 

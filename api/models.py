@@ -228,7 +228,7 @@ class Game(models.Model):
     def create_default_inventory(self):
         """Ajoute des objets par défaut à l'inventaire du joueur lors de la création de la partie."""
         # Chercher les items par leur nom
-        default_items = Item.objects.filter(name__in=["ITMN_00001", "ITMN_00006"])
+        default_items = Item.objects.filter(name__in=["ITMN_00001", "ITMN_00011", "ITMN_00002", "ITMN_00003", "ITMN_00004", "ITMN_00005", "ITMN_00006" ])
 
         # Création de l'inventaire du personnage
         character_inventory = CharacterInventory.objects.create(game=self)
@@ -339,9 +339,12 @@ class CharacterSkill(models.Model):
     level = models.PositiveIntegerField(default=1)  # Niveau de compétence
     # Add fields for skill level, effects, etc. (optional)
 
+from django.db import models
+from django.core.exceptions import ValidationError
+
 class CharacterInventory(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    bag = models.ManyToManyField(Item, related_name='character_inventory')  # Utilisation de ManyToMany pour permettre plusieurs items
+    bag = models.ManyToManyField(Item, related_name='character_inventory')  # Permet plusieurs items
 
     primary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_primary_weapon')
     secondary_weapon = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_secondary_weapon')
@@ -363,30 +366,37 @@ class CharacterInventory(models.Model):
         if item.item_type not in equip_slots:
             raise ValidationError("Cet item ne peut pas être équipé.")
 
-        # Gestion spéciale pour les armes (deux slots possibles)
+        # Gestion des armes
         if item.item_type == 'ITMT_00001':  # Weapon
             if self.primary_weapon is None:
                 self.primary_weapon = item
             elif self.secondary_weapon is None:
                 self.secondary_weapon = item
             else:
-                # Remplace l'arme primaire si les deux sont pleins
-                self.primary_weapon = item  
+                self.primary_weapon = item  # Remplace l'arme primaire si les deux sont pleins
         else:
-            # Remplace directement l'ancien équipement
-            setattr(self, equip_slots[item.item_type][0], item)
+            for slot in equip_slots[item.item_type]:
+                current_item = getattr(self, slot)
+                if current_item:
+                    self.bag.add(current_item)  # Remet l'ancien item dans le bag
+                setattr(self, slot, item)  # Équipe l'item
+
+        # Retirer l'item du bag après équipement
+        if item in self.bag.all():
+            self.bag.remove(item)
 
         self.save()
 
     def unequip_item(self, item):
-        """Déséquipe un item s'il est équipé"""
+        """Déséquipe un item et le remet dans le bag"""
         slots = ['primary_weapon', 'secondary_weapon', 'helmet', 'chestplate', 'leggings', 'boots']
         for slot in slots:
             if getattr(self, slot) == item:
                 setattr(self, slot, None)
+                self.bag.add(item)
                 self.save()
                 return True
-        return False  # Item non équipé
+        return False
 
     def add_item(self, item):
         """Ajoute un item à l'inventaire"""
@@ -396,15 +406,6 @@ class CharacterInventory(models.Model):
         """Retire un item de l'inventaire et le déséquipe s'il était équipé"""
         self.unequip_item(item)  # Vérifie si l'item est équipé et le retire
         self.bag.remove(item)
-
-    def get_items_by_category(self):
-        """Retourne les items triés par catégorie (armes, armures, consommables, etc.)"""
-        items_by_category = {
-            'Armes': self.bag.filter(item_type='ITMT_00001'),
-            'Armures': self.bag.filter(item_type__in=['ITMT_00002', 'ITMT_00003', 'ITMT_00004', 'ITMT_00005']),
-            'Objets': self.bag.filter(item_type='ITMT_00006'),
-        }
-        return items_by_category
 
 class NPC(models.Model):
     name = models.CharField(max_length=255)

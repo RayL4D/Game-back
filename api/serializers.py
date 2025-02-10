@@ -86,12 +86,18 @@ class ItemSerializer(serializers.ModelSerializer):
         
     
 class CharacterInventorySerializer(serializers.ModelSerializer):
-    bag = ItemSerializer(many=True)  # Utilise le serializer Item pour lister les items
-    primary_weapon = ItemSerializer()  # Ajoute un serializer pour primary_weapon
+    bag = ItemSerializer(many=True)  # Liste des items dans le bag
+    primary_weapon = ItemSerializer(required=False, allow_null=True)  
+    secondary_weapon = ItemSerializer(required=False, allow_null=True)
+    helmet = ItemSerializer(required=False, allow_null=True)
+    chestplate = ItemSerializer(required=False, allow_null=True)
+    leggings = ItemSerializer(required=False, allow_null=True)
+    boots = ItemSerializer(required=False, allow_null=True)
 
     class Meta:
         model = CharacterInventory
         fields = '__all__'
+
 
 class TileSerializer(serializers.ModelSerializer):
     north_door_id = serializers.IntegerField(source='north_door.id', allow_null=True)  # Ajout de allow_null=True

@@ -369,6 +369,44 @@ class CharacterInventoryViewSet(viewsets.ModelViewSet):
     serializer_class = CharacterInventorySerializer
     permission_classes = [IsAuthenticated]
 
+    @action(detail=True, methods=['post'])
+    def equip_item(self, request, pk=None):
+        character_inventory = self.get_object()
+        item_id = request.data.get('item_id')
+
+        if not item_id:
+            return Response({"detail": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            item = Item.objects.get(id=item_id)
+        except Item.DoesNotExist:
+            return Response({"detail": "Item not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if item not in character_inventory.bag.all():
+            return Response({"detail": "Item not in bag."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            character_inventory.equip_item(item)
+            return Response({"detail": "Item equipped successfully."}, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def unequip_item(self, request, pk=None):
+        character_inventory = self.get_object()
+        slot = request.data.get('slot')
+
+        if not slot:
+            return Response({"detail": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
+
+        item_to_unequip = getattr(character_inventory, slot, None)
+
+        if item_to_unequip:
+            character_inventory.unequip_item(item_to_unequip)
+            return Response({"detail": "Item unequipped successfully."}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "No item equipped in this slot."}, status=status.HTTP_400_BAD_REQUEST)
+
 class TileViewSet(viewsets.ModelViewSet):
     queryset = Tile.objects.all()
     serializer_class = TileSerializer
