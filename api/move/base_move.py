@@ -63,13 +63,12 @@ class BaseMove:
         print(f"Changement de tuile : {current_tile.id} -> {target_tile.id}")  # Debugging
         self.game.current_tile = target_tile
         self.game.save()
-        self.game.save_game_state()
 
         # Vérifier et créer TileSavedState si nécessaire
         tile_saved_state, created = TileSavedState.objects.get_or_create(
             game=self.game,
             user=self.game.user,
-            tile=target_tile,
+            tile=self.game.current_tile,
             defaults={'visited': True}
         )
 
