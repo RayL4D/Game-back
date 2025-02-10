@@ -62,6 +62,25 @@ def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=No
                 tiles[(x - 1, y)].south_door_level = max(tiles[(x - 1, y)].south_door_level, 1)
             tile.save()
 
+
+    # Connecter les tuiles horizontalement et verticalement
+    for y in range(grid_size):
+        for x in range(grid_size):
+            tile = tiles[(x, y)]
+            if y < grid_size - 1:
+                tile.east_door_level = max(tile.east_door_level, 1)
+                tiles[(x, y + 1)].west_door_level = max(tiles[(x, y + 1)].west_door_level, 1)
+            if x < grid_size - 1:
+                tile.south_door_level = max(tile.south_door_level, 1)
+                tiles[(x + 1, y)].north_door_level = max(tiles[(x + 1, y)].north_door_level, 1)
+            if y > 0:
+                tile.west_door_level = max(tile.west_door_level, 1)
+                tiles[(x, y - 1)].east_door_level = max(tiles[(x, y - 1)].east_door_level, 1)
+            if x > 0:
+                tile.north_door_level = max(tile.north_door_level, 1)
+                tiles[(x - 1, y)].south_door_level = max(tiles[(x - 1, y)].south_door_level, 1)
+            tile.save()
+
 def add_initial_data(apps, schema_editor):
     Map = apps.get_model('api', 'Map')
     CharacterClass = apps.get_model('api', 'CharacterClass')

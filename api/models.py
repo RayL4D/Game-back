@@ -234,10 +234,10 @@ class Game(models.Model):
         character_inventory = CharacterInventory.objects.create(game=self)
 
         # Chercher l'item "Wooden Sword" pour l'assigner comme primary_weapon
-        wooden_sword = default_items.filter(name="ITMN_00001").first()
-        if wooden_sword:
-            character_inventory.primary_weapon = wooden_sword  # Assigner l'item à la primary_weapon
-            character_inventory.save()  # Sauvegarder la modification de l'inventaire
+        # wooden_sword = default_items.filter(name="ITMN_00001").first()
+        # if wooden_sword:
+        #     character_inventory.primary_weapon = wooden_sword  # Assigner l'item à la primary_weapon
+        #     character_inventory.save()  # Sauvegarder la modification de l'inventaire
 
         # Ajouter les autres objets à l'inventaire (ex. Healing Potion)
         for item in default_items:
@@ -390,13 +390,21 @@ class CharacterInventory(models.Model):
 
     def add_item(self, item):
         """Ajoute un item à l'inventaire"""
-        self.items.add(item)
+        self.bag.add(item)
 
     def remove_item(self, item):
         """Retire un item de l'inventaire et le déséquipe s'il était équipé"""
         self.unequip_item(item)  # Vérifie si l'item est équipé et le retire
-        self.items.remove(item)
+        self.bag.remove(item)
 
+    def get_items_by_category(self):
+        """Retourne les items triés par catégorie (armes, armures, consommables, etc.)"""
+        items_by_category = {
+            'Armes': self.bag.filter(item_type='ITMT_00001'),
+            'Armures': self.bag.filter(item_type__in=['ITMT_00002', 'ITMT_00003', 'ITMT_00004', 'ITMT_00005']),
+            'Objets': self.bag.filter(item_type='ITMT_00006'),
+        }
+        return items_by_category
 
 class NPC(models.Model):
     name = models.CharField(max_length=255)
