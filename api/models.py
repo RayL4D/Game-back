@@ -340,9 +340,11 @@ class CharacterInventory(models.Model):
     leggings = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_leggings')
     boots = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_boots')
 
+    locked_slots = models.JSONField(default=dict)  # Stocke les slots verrouillés {"B": True, "C": True}
+
     def equip_item(self, item, slot):
         """
-        Équipe un item dans le slot spécifié si compatible avec bodypart.
+        Équipe un item dans le slot spécifié si compatible avec bodypart et vérifie les locks.
         """
 
         equipable_slots = {
@@ -362,9 +364,9 @@ class CharacterInventory(models.Model):
         if equipable_slots[slot] not in item.bodypart:
             raise ValidationError(f"L'item {item.name} ne peut pas être équipé dans le slot {slot}.")
 
-        # Vérifier si l'item est déjà équipé
-        if getattr(self, slot) == item:
-            raise ValidationError(f"L'item {item.name} est déjà équipé dans {slot}.")
+        # Vérifier si le slot est verrouillé
+        if self.locked_slots.get(slot, False):
+            raise ValidationError(f"Le slot {slot} est verrouillé et ne peut pas être utilisé.")
 
         # Déséquipement de l'ancien item s'il y en a un
         current_item = getattr(self, slot)
@@ -375,21 +377,28 @@ class CharacterInventory(models.Model):
         setattr(self, slot, item)
 
         # Gestion des verrous de slots (bodypart_lock)
+        self.locked_slots = {}  # Réinitialisation des verrous avant d'enregistrer les nouveaux
+
         if item.bodypart_lock:
             for lock_slot in item.bodypart_lock:
                 locked_attr = next((k for k, v in equipable_slots.items() if v == lock_slot), None)
-                if locked_attr and getattr(self, locked_attr):
-                    self.bag.add(getattr(self, locked_attr))  # Remet l'item verrouillé dans l'inventaire
-                    setattr(self, locked_attr, None)  # Déverrouille le slot
+                if locked_attr:
+                    # Retirer l'item du slot bloqué et l'ajouter à l'inventaire
+                    locked_item = getattr(self, locked_attr)
+                    if locked_item:
+                        self.bag.add(locked_item)
+                        setattr(self, locked_attr, None)
+
+                    # Marquer le slot comme verrouillé
+                    self.locked_slots[locked_attr] = True
 
         # Retire l'item du sac car il est équipé
         self.bag.remove(item)
-
         self.save()
 
     def unequip_item(self, slot):
         """
-        Déséquipe un item du slot donné et le remet dans l'inventaire.
+        Déséquipe un item du slot donné, le remet dans l'inventaire et déverrouille si besoin.
         """
         equipable_slots = {
             "primary_weapon": "A",
@@ -400,7 +409,7 @@ class CharacterInventory(models.Model):
             "boots": "F"
         }
 
-        if slot not in equipable_slots:
+        if slot not in equipable_slots: 
             raise ValidationError(f"Slot invalide: {slot}")
 
         item_to_unequip = getattr(self, slot)
@@ -411,7 +420,17 @@ class CharacterInventory(models.Model):
         # Déséquipe l'item et le remet dans l'inventaire
         setattr(self, slot, None)
         self.bag.add(item_to_unequip)
+
+        # Déverrouille tous les slots bloqués par cet item
+        if item_to_unequip.bodypart_lock:
+            for lock_slot in item_to_unequip.bodypart_lock:
+                locked_attr = next((k for k, v in equipable_slots.items() if v == lock_slot), None)
+                if locked_attr and locked_attr in self.locked_slots:
+                    self.locked_slots.pop(locked_attr)  # Déverrouille le slot
+
         self.save()
+
+
 
 
 class NPC(models.Model):
