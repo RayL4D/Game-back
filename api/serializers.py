@@ -100,12 +100,6 @@ class CharacterInventorySerializer(serializers.ModelSerializer):
 
 
 class TileSerializer(serializers.ModelSerializer):
-    north_door_id = serializers.IntegerField(source='north_door.id', allow_null=True)  # Ajout de allow_null=True
-    east_door_id = serializers.IntegerField(source='east_door.id', allow_null=True)
-    south_door_id = serializers.IntegerField(source='south_door.id', allow_null=True)
-    west_door_id = serializers.IntegerField(source='west_door.id', allow_null=True)
-
-
     class Meta:
         model = Tile
         fields = '__all__'   # Add 'image_path' here

@@ -94,7 +94,6 @@ def add_initial_data(apps, schema_editor):
     Game = apps.get_model('api', 'Game')
     User = apps.get_model('auth', 'User')
     TileSavedState = apps.get_model('api', 'TileSavedState')  # Import TileSavedState
-
     #user1 = User.objects.create_user(username='test', password='Btssio2017')
 
     # Création de mondes
@@ -197,56 +196,69 @@ def add_initial_data(apps, schema_editor):
     )
 
 
+    # # Épée en bois
+    # wooden_sword = Item.objects.create(
+    #     name='ITMN_00001',
+    #     item_type='ITMT_00001',  # Weapon
+    #     description='ITMD_00001',
+    #     attack_power=5,
+    #     tile=Tile.objects.get(map=map1a, posX=0, posY=0),
+    # )
+    
     # Épée en bois
     wooden_sword = Item.objects.create(
-        name='ITMN_00001',
-        item_type='ITMT_00001',  # Weapon
-        description='ITMD_00001',
-        attack_power=5,
+        name="ITMN_00001",
+        type="ITMT_00001",
+        description="ITMD_00001",
+        attack_power=1,
+        bodypart="AB",
         tile=Tile.objects.get(map=map1a, posX=0, posY=0),
     )
-
 
     # Casque en bois
     wooden_helmet = Item.objects.create(
         name='ITMN_00002',
-        item_type='ITMN_00002',  # Helmet
+        type='ITMT_00002',  # Helmet
         description='ITMD_00002',
         defense=2,
+        bodypart="C",
         tile=Tile.objects.get(map=map1a, posX=0, posY=1),
     )
 
     # Plastron en bois
     wooden_chestplate = Item.objects.create(
         name='ITMN_00003',
-        item_type='ITMT_00003',  # Chestplate
+        type='ITMT_00003',  # Chestplate
         description='ITMD_00003',
         defense=5,
+        bodypart="D",
         tile=Tile.objects.get(map=map1a, posX=2, posY=2),
     )
 
     # Jambières en bois
     wooden_leggings = Item.objects.create(
         name='ITMN_00004',
-        item_type='ITMT_00004',  # Leggings
+        type='ITMT_00004',  # Leggings
         description='ITMD_00004',
         defense=3,
+        bodypart="E",
         tile=Tile.objects.get(map=map4a, posX=2, posY=2),
     )
 
     # Bottes en bois
     wooden_boots = Item.objects.create(
         name='ITMN_00005',
-        item_type='ITMT_00005',  # Boots
+        type='ITMT_00005',  # Boots
         description='ITMD_00005',
         defense=1,
+        bodypart="F",
         tile=Tile.objects.get(map=map1a, posX=2, posY=2),
     )
 
     # Consommable (exemple : potion)
     potion1 = Item.objects.create(
         name='ITMN_00006',
-        item_type='ITMT_00006',  # Consumable
+        type='ITMT_00006',  # Consumable
         description='ITMD_00006',
         healing=20,
         tile=Tile.objects.get(map=map2a, posX=2, posY=3),
@@ -255,7 +267,7 @@ def add_initial_data(apps, schema_editor):
     # Objet de quête
     scroll1 = Item.objects.create(
         name='ITMN_00007',
-        item_type='ITMT_00007',  # Quest
+        type='ITMT_00007',  # Quest
         description='ITMD_00007',
         tile=Tile.objects.get(map=map2a, posX=4, posY=3),
     )
@@ -263,7 +275,7 @@ def add_initial_data(apps, schema_editor):
     # Objet inutilisable (par exemple, un déchet)
     junk1 = Item.objects.create(
         name='ITMN_00008',
-        item_type='ITMT_00008',  # Junk
+        type='ITMT_00008',  # Junk
         description='ITMD_00008',
         tile=Tile.objects.get(map=map2a, posX=1, posY=3),
     )
@@ -271,7 +283,7 @@ def add_initial_data(apps, schema_editor):
     # Manuscrit
     manuscript1 = Item.objects.create(
         name='ITMN_00009',
-        item_type='ITMT_00009',  # Manuscript
+        type='ITMT_00009',  # Manuscript
         description='ITMD_00009',
         tile=Tile.objects.get(map=map2a, posX=0, posY=1),
     )
@@ -279,17 +291,39 @@ def add_initial_data(apps, schema_editor):
     # Clé
     key1 = Item.objects.create(
         name='ITMN_00010',
-        item_type='ITMT_00010',  # Key
+        type='ITMT_00010',  # Key
         description='ITMD_00010',
         tile=Tile.objects.get(map=map1a, posX=2, posY=1),
     )
 
-    # lance en bois
+    # Lance en bois
     wooden_spear = Item.objects.create(
         name='ITMN_00011',
-        item_type='ITMT_00001',  # Weapon
+        type='ITMT_00001',  # Weapon
         description='ITMD_00011',
         attack_power=5,
+        bodypart="AB",
+        tile=Tile.objects.get(map=map1a, posX=0, posY=0),
+    )
+
+    # Bouclier en bois
+    wooden_shield = Item.objects.create(
+        name='ITMN_00012',
+        type='ITMT_00001',  # Weapon
+        description='ITMD_00012',
+        defense=5,
+        bodypart="AB",
+        tile=Tile.objects.get(map=map1a, posX=0, posY=0),
+    )
+
+    # Hache en bois
+    wooden_axe = Item.objects.create(
+        name='ITMN_00013',
+        type='ITMT_00001',  # Weapon
+        description='ITMD_00013',
+        attack_power=5,
+        bodypart="A",
+        bodypart_lock = "B",
         tile=Tile.objects.get(map=map1a, posX=0, posY=0),
     )
 

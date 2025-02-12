@@ -29,6 +29,7 @@ from drf_yasg import openapi
 from .move.jump_move import JumpMove            
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.core.exceptions import ValidationError
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -371,41 +372,70 @@ class CharacterInventoryViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def equip_item(self, request, pk=None):
+        """
+        Équipe un item du bag dans un slot disponible en fonction de bodypart et bodypart_lock.
+        """
         character_inventory = self.get_object()
         item_id = request.data.get('item_id')
+        slot = request.data.get("slot")  # Slot envoyé dans la requête
 
         if not item_id:
-            return Response({"detail": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "L'ID de l'item est requis."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             item = Item.objects.get(id=item_id)
         except Item.DoesNotExist:
-            return Response({"detail": "Item not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Item introuvable."}, status=status.HTTP_404_NOT_FOUND)
 
         if item not in character_inventory.bag.all():
-            return Response({"detail": "Item not in bag."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "L'item n'est pas dans votre inventaire."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Définition des slots valides
+        valid_slots = {
+            "primary_weapon": "A",
+            "secondary_weapon": "B",
+            "helmet": "C",
+            "chestplate": "D",
+            "leggings": "E",
+            "boots": "F"
+        }
+
+        # Vérification : le slot doit être valide
+        if slot not in valid_slots:
+            return Response({"detail": f"Slot invalide: {slot}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Vérification : l'item peut-il être équipé dans ce slot ?
+        bodypart = item.bodypart
+        if valid_slots[slot] not in bodypart:
+            return Response({"detail": f"L'item ne peut pas être équipé dans le slot {slot}."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            character_inventory.equip_item(item)
-            return Response({"detail": "Item equipped successfully."}, status=status.HTTP_200_OK)
+            character_inventory.equip_item(item, slot)  # Modification pour passer le slot explicitement
+            return Response({"detail": "Item équipé avec succès."}, status=status.HTTP_200_OK)
         except ValidationError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def unequip_item(self, request, pk=None):
+        """
+        Déséquipe un item et le remet dans le bag du joueur.
+        """
         character_inventory = self.get_object()
-        slot = request.data.get('slot')
+        slot = request.data.get("slot")  # Récupération du slot depuis la requête
 
-        if not slot:
-            return Response({"detail": "Missing required fields."}, status=status.HTTP_400_BAD_REQUEST)
+        equipable_slots = ["primary_weapon", "secondary_weapon", "helmet", "chestplate", "leggings", "boots"]
 
-        item_to_unequip = getattr(character_inventory, slot, None)
+        if slot not in equipable_slots:
+            return Response({"detail": "Slot invalide."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if item_to_unequip:
-            character_inventory.unequip_item(item_to_unequip)
-            return Response({"detail": "Item unequipped successfully."}, status=status.HTTP_200_OK)
-        else:
-            return Response({"detail": "No item equipped in this slot."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            character_inventory.unequip_item(slot)  # Utilisation du slot directement
+            return Response({"detail": "Item déséquipé avec succès."}, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 class TileViewSet(viewsets.ModelViewSet):
     queryset = Tile.objects.all()

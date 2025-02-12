@@ -65,30 +65,19 @@ class CharacterClass(models.Model):  # New model for character classes
 
 class Item(models.Model):
     name = models.CharField(max_length=255)
-    item_type = models.CharField(max_length=255, choices=[
-        ('ITMT_00001', 'ITMT_00001'),
-        ('ITMT_00002', 'ITMT_00002'),
-        ('ITMT_00003', 'ITMT_00003'),
-        ('ITMT_00004', 'ITMT_00004'),
-        ('ITMT_00005', 'ITMT_00005'),
-        ('ITMT_00006', 'ITMT_00006'),
-        ('ITMT_00007', 'ITMT_00007'),
-        ('ITMT_00008', 'ITMT_00008'),
-        ('ITMT_00009', 'ITMT_00009'),
-        ('ITMT_00010', 'ITMT_00010'),
-        ] )
-
+    type = models.CharField(max_length=255)
     description = models.TextField(blank=True)  # Optional item description
     attack_power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Attack power for weapons
     defense = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Defense value for armor
     healing = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Healing value for consumables
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
-
+    bodypart = models.CharField(max_length=5, null=True, blank=True)
+    bodypart_lock = models.CharField(max_length=5, null=True, blank=True)
 
     # def get_image_path(self):
     #     return f'https://rayl4d.github.io/GameImages/Item/{self.id}'
 
-    
+
 class Game(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Optional foreign key to User model
     name = models.CharField(max_length=255)
@@ -107,38 +96,38 @@ class Game(models.Model):
     current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game') 
     inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'bag'))    
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
-    session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
+    #session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     updated_at = models.DateTimeField(auto_now=True)  # Date de la dernière mise à jour
     
 
 
-    def save_game_state(self):
-        # Serialize character data and store it in the session
-        session = Session.objects.get_or_create(expire_date=timezone.now() + datetime.timedelta(days=1))[0]  # Create or get session
-        self.session_key = session
-        game_data = {
-            'name': self.name,
-            'current_tile': self.current_tile.id if self.current_tile else None,
-            'inventory': [item.id for item in self.characterinventory_set.all()],  # Get inventory item IDs
-        }
-        session.session_data['game_data'] = json.dumps(game_data)  # Serialize data to JSON
-        session.save()
-        self.save()  # Save character with updated session key
+    # def save_game_state(self):
+    #     # Serialize character data and store it in the session
+    #     session = Session.objects.get_or_create(expire_date=timezone.now() + datetime.timedelta(days=1))[0]  # Create or get session
+    #     self.session_key = session
+    #     game_data = {
+    #         'name': self.name,
+    #         'current_tile': self.current_tile.id if self.current_tile else None,
+    #         'inventory': [item.id for item in self.characterinventory_set.all()],  # Get inventory item IDs
+    #     }
+    #     session.session_data['game_data'] = json.dumps(game_data)  # Serialize data to JSON
+    #     session.save()
+    #     self.save()  # Save character with updated session key
 
-    def load_game_state(self):
-        # Check if a session exists with character data
-        session = self.session_key
-        if session and 'game_data' in session.session_data:
-            game_data = json.loads(session.session_data['game_data'])
-            self.current_tile = Tile.objects.get(pk=game_data['current_tile']) if game_data['current_tile'] else None
-            # Load inventory items based on retrieved IDs (consider using bulk operations for efficiency)
-            self.characterinventory_set.clear()  # Clear existing inventory before loading
-            for item_id in game_data['inventory']:
-                item = Item.objects.get(pk=item_id)
-                CharacterInventory.objects.create(game=self, item=item)
-        else:
-            print("No saved game state found")
+    # def load_game_state(self):
+    #     # Check if a session exists with character data
+    #     session = self.session_key
+    #     if session and 'game_data' in session.session_data:
+    #         game_data = json.loads(session.session_data['game_data'])
+    #         self.current_tile = Tile.objects.get(pk=game_data['current_tile']) if game_data['current_tile'] else None
+    #         # Load inventory items based on retrieved IDs (consider using bulk operations for efficiency)
+    #         self.characterinventory_set.clear()  # Clear existing inventory before loading
+    #         for item_id in game_data['inventory']:
+    #             item = Item.objects.get(pk=item_id)
+    #             CharacterInventory.objects.create(game=self, item=item)
+    #     else:
+    #         print("No saved game state found")
 
 
     def save_from_game(self, game):
@@ -228,7 +217,7 @@ class Game(models.Model):
     def create_default_inventory(self):
         """Ajoute des objets par défaut à l'inventaire du joueur lors de la création de la partie."""
         # Chercher les items par leur nom
-        default_items = Item.objects.filter(name__in=["ITMN_00001", "ITMN_00011", "ITMN_00002", "ITMN_00003", "ITMN_00004", "ITMN_00005", "ITMN_00006" ])
+        default_items = Item.objects.filter(name__in=["ITMN_00001", "ITMN_00011", "ITMN_00012", "ITMN_00013", "ITMN_00002", "ITMN_00003", "ITMN_00004", "ITMN_00005", "ITMN_00006"])
 
         # Création de l'inventaire du personnage
         character_inventory = CharacterInventory.objects.create(game=self)
@@ -339,8 +328,6 @@ class CharacterSkill(models.Model):
     level = models.PositiveIntegerField(default=1)  # Niveau de compétence
     # Add fields for skill level, effects, etc. (optional)
 
-from django.db import models
-from django.core.exceptions import ValidationError
 
 class CharacterInventory(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
@@ -353,59 +340,79 @@ class CharacterInventory(models.Model):
     leggings = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_leggings')
     boots = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True, related_name='equipped_as_boots')
 
-    def equip_item(self, item):
-        """Équipe un item en remplaçant l'ancien si nécessaire"""
-        equip_slots = {
-            'ITMT_00001': ['primary_weapon', 'secondary_weapon'],  # Weapons
-            'ITMT_00002': ['helmet'],
-            'ITMT_00003': ['chestplate'],
-            'ITMT_00004': ['leggings'],
-            'ITMT_00005': ['boots'],
+    def equip_item(self, item, slot):
+        """
+        Équipe un item dans le slot spécifié si compatible avec bodypart.
+        """
+
+        equipable_slots = {
+            "primary_weapon": "A",
+            "secondary_weapon": "B",
+            "helmet": "C",
+            "chestplate": "D",
+            "leggings": "E",
+            "boots": "F"
         }
 
-        if item.item_type not in equip_slots:
-            raise ValidationError("Cet item ne peut pas être équipé.")
+        # Vérifier si le slot est valide
+        if slot not in equipable_slots:
+            raise ValidationError(f"Slot invalide: {slot}")
 
-        # Gestion des armes
-        if item.item_type == 'ITMT_00001':  # Weapon
-            if self.primary_weapon is None:
-                self.primary_weapon = item
-            elif self.secondary_weapon is None:
-                self.secondary_weapon = item
-            else:
-                self.primary_weapon = item  # Remplace l'arme primaire si les deux sont pleins
-        else:
-            for slot in equip_slots[item.item_type]:
-                current_item = getattr(self, slot)
-                if current_item:
-                    self.bag.add(current_item)  # Remet l'ancien item dans le bag
-                setattr(self, slot, item)  # Équipe l'item
+        # Vérifier si l'item peut être équipé dans ce slot
+        if equipable_slots[slot] not in item.bodypart:
+            raise ValidationError(f"L'item {item.name} ne peut pas être équipé dans le slot {slot}.")
 
-        # Retirer l'item du bag après équipement
-        if item in self.bag.all():
-            self.bag.remove(item)
+        # Vérifier si l'item est déjà équipé
+        if getattr(self, slot) == item:
+            raise ValidationError(f"L'item {item.name} est déjà équipé dans {slot}.")
+
+        # Déséquipement de l'ancien item s'il y en a un
+        current_item = getattr(self, slot)
+        if current_item:
+            self.bag.add(current_item)  # Remet l'ancien item dans l'inventaire
+
+        # Équipe le nouvel item
+        setattr(self, slot, item)
+
+        # Gestion des verrous de slots (bodypart_lock)
+        if item.bodypart_lock:
+            for lock_slot in item.bodypart_lock:
+                locked_attr = next((k for k, v in equipable_slots.items() if v == lock_slot), None)
+                if locked_attr and getattr(self, locked_attr):
+                    self.bag.add(getattr(self, locked_attr))  # Remet l'item verrouillé dans l'inventaire
+                    setattr(self, locked_attr, None)  # Déverrouille le slot
+
+        # Retire l'item du sac car il est équipé
+        self.bag.remove(item)
 
         self.save()
 
-    def unequip_item(self, item):
-        """Déséquipe un item et le remet dans le bag"""
-        slots = ['primary_weapon', 'secondary_weapon', 'helmet', 'chestplate', 'leggings', 'boots']
-        for slot in slots:
-            if getattr(self, slot) == item:
-                setattr(self, slot, None)
-                self.bag.add(item)
-                self.save()
-                return True
-        return False
+    def unequip_item(self, slot):
+        """
+        Déséquipe un item du slot donné et le remet dans l'inventaire.
+        """
+        equipable_slots = {
+            "primary_weapon": "A",
+            "secondary_weapon": "B",
+            "helmet": "C",
+            "chestplate": "D",
+            "leggings": "E",
+            "boots": "F"
+        }
 
-    def add_item(self, item):
-        """Ajoute un item à l'inventaire"""
-        self.bag.add(item)
+        if slot not in equipable_slots:
+            raise ValidationError(f"Slot invalide: {slot}")
 
-    def remove_item(self, item):
-        """Retire un item de l'inventaire et le déséquipe s'il était équipé"""
-        self.unequip_item(item)  # Vérifie si l'item est équipé et le retire
-        self.bag.remove(item)
+        item_to_unequip = getattr(self, slot)
+
+        if not item_to_unequip:
+            raise ValidationError(f"Aucun item équipé dans {slot}.")
+
+        # Déséquipe l'item et le remet dans l'inventaire
+        setattr(self, slot, None)
+        self.bag.add(item_to_unequip)
+        self.save()
+
 
 class NPC(models.Model):
     name = models.CharField(max_length=255)
