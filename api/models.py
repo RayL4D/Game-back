@@ -377,8 +377,6 @@ class CharacterInventory(models.Model):
         setattr(self, slot, item)
 
         # Gestion des verrous de slots (bodypart_lock)
-        self.locked_slots = {}  # Réinitialisation des verrous avant d'enregistrer les nouveaux
-
         if item.bodypart_lock:
             for lock_slot in item.bodypart_lock:
                 locked_attr = next((k for k, v in equipable_slots.items() if v == lock_slot), None)
@@ -394,7 +392,8 @@ class CharacterInventory(models.Model):
 
         # Retire l'item du sac car il est équipé
         self.bag.remove(item)
-        self.save()
+        self.save()  # Sauvegarde les changements
+
 
     def unequip_item(self, slot):
         """
@@ -428,7 +427,8 @@ class CharacterInventory(models.Model):
                 if locked_attr and locked_attr in self.locked_slots:
                     self.locked_slots.pop(locked_attr)  # Déverrouille le slot
 
-        self.save()
+        self.save()  # Sauvegarde les changements
+
 
 
 
