@@ -2,36 +2,36 @@ from ..models import Tile, TileSavedState
 from .base_move import BaseMove
 
 class JumpMove(BaseMove):
-    def validate(self):
+    def validate(self, valid_directions=None):
         # Vérifier si le joueur est sur une tuile avec un portail
         current_tile = self.game.current_tile
         if not current_tile.portal_to_map:
-            raise ValueError("No portal on the current tile")
+            self.error_codes.append("J100")
+            self.is_ok = False
+            return
 
     def execute(self):
         current_tile = self.game.current_tile
 
-        # Vérifier si le joueur veut utiliser le portail
-        use_portal = self.request_data.get('use_portal', False)
-
-        if not use_portal:
-            return {"message": "You chose not to use the portal"}
-
         # Vérifier que la map cible existe
         new_map = current_tile.portal_to_map
         if not new_map:
-            return {"error": "No destination map found"}
+            self.error_codes.append("J300")
+            self.is_ok = False
+            return
 
         # Trouver la tile de destination
         destination_tile = current_tile.portal_destination_tile or Tile.objects.filter(map=new_map).first()
         if not destination_tile:
-            return {"error": "No destination tile found in the new map"}
+            self.error_codes.append("J400")
+            self.is_ok = False
+            return
 
         # Mettre à jour la position du joueur
         self.game.map = new_map
         self.game.current_tile = destination_tile
         self.game.save()
-        self.game.save_game_state()
+        self.save_game_state()  # Utiliser la méthode de BaseMove
 
         # Enregistrer la visite de la nouvelle tuile
         tile_saved_state, created = TileSavedState.objects.get_or_create(

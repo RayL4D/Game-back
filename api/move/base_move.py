@@ -47,14 +47,13 @@ class BaseMove:
                 return
 
     def execute(self, new_posX, new_posY):
-        
         current_tile = self.game.current_tile
         print(f"Nouvelle position calculée : ({new_posX}, {new_posY})")
 
         # Vérifier la nouvelle tuile
         target_tile = Tile.objects.filter(map=current_tile.map, posX=new_posX, posY=new_posY).first()
 
-        if target_tile == None:
+        if target_tile is None:
             self.error_codes.append("D500")
             self.is_ok = False
             return
@@ -77,10 +76,13 @@ class BaseMove:
             tile_saved_state.visited = True
             tile_saved_state.save()
 
-        
+    def save_game_state(self):
+        # Logique pour sauvegarder l'état du jeu
+        pass
+
     def handle_response(self, result):
         """Méthode pour gérer la réponse de l'action."""
         if self.is_ok:
             return Response({"is_ok": self.is_ok}, status=status.HTTP_200_OK)
         else:
-            return Response({"is_ok": self.is_ok, "error_codes": self.error_codes}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"is_ok": self.is_ok, "error_codes": self.error_codes})

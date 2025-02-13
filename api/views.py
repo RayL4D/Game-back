@@ -312,15 +312,14 @@ class GameMoveViewSet(viewsets.ViewSet):
     def perform_move(self, request):
         game_id = request.data.get('game_id')
         direction = request.data.get('direction')  # Ex: "east", "west", "north", "south", "jump"
-        # use_portal = request.data.get('use_portal', False)  # Optionnel pour JumpMove!
 
         if not game_id or not direction:
-            return Response({"error": "game_id and direction are required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"is_ok": False, "error_codes": ["D100"]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             game = Game.objects.get(pk=game_id, user=request.user)
         except Game.DoesNotExist:
-            return Response({"error": "Game not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"is_ok": False, "error_codes": ["G404"]}, status=status.HTTP_404_NOT_FOUND)
 
         # Mapping des directions aux classes de mouvement
         move_classes = {
@@ -333,16 +332,16 @@ class GameMoveViewSet(viewsets.ViewSet):
 
         move_class = move_classes.get(direction)
         if not move_class:
-            return Response({"error": "Invalid direction"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"is_ok": False, "error_codes": ["D200"]}, status=status.HTTP_400_BAD_REQUEST)
 
         # Exécuter l'action de déplacement
         move_action = move_class(game, request.data)
         try:
-            move_action.validate(direction)
+            move_action.validate(valid_directions=[direction])  # Passer l'argument valid_directions
             result = move_action.execute()
             return move_action.handle_response(result)
         except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"is_ok": False, "error_codes": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
 
 class CharacterClassViewSet(viewsets.ModelViewSet):
     queryset = CharacterClass.objects.all()
