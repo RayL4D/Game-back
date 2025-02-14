@@ -500,17 +500,17 @@ class TileContextViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path=r'(?P<game_id>\d+)')
     def get_tile_context(self, request, game_id):
         try:
-            # 🔍 Vérifier si le Game existe
+            # Vérifier si le Game existe
             game = Game.objects.get(id=game_id)
             print("Game trouvé :", game)  # Debugging
 
-            # 🔍 Vérifier si une current_tile est définie
+            # Vérifier si une current_tile est définie
             current_tile = game.current_tile
             if not current_tile:
                 print("Erreur : Pas de current_tile")  # Debugging
                 return Response({"error": "No current tile set for this game"}, status=404)
 
-            # 🔍 Vérifier si un TileSavedState existe pour cette current_tile
+            # Vérifier si un TileSavedState existe pour cette current_tile
             tile_saved_state = TileSavedState.objects.filter(game=game, tile=current_tile, visited=True).first()
             print("TileSavedState trouvé :", tile_saved_state)  # Debugging
 
@@ -518,7 +518,7 @@ class TileContextViewSet(viewsets.ViewSet):
                 print("Erreur : Tile non visitée")  # Debugging
                 return Response({"error": "Current tile has not been visited"}, status=404)
 
-            # 🔍 Sérialisation et réponse
+            # Sérialisation et réponse
             serializer = TileContextSerializer({
                 "tile": current_tile,
                 "tile_saved_state": tile_saved_state

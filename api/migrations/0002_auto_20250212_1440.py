@@ -29,15 +29,15 @@ def create_tiles_for_map(apps, map_id, grid_size, next_map_portal_tile_coords=No
                         ).first()
                         tile.portal_destination_tile = destination_tile
 
-                    # Mettre à jour le niveau de la porte à au moins 1
-                    if tile.north_door_level == 0:
-                        tile.north_door_level = 1
-                    if tile.south_door_level == 0:
-                        tile.south_door_level = 1
-                    if tile.east_door_level == 0:
-                        tile.east_door_level = 1
-                    if tile.west_door_level == 0:
-                        tile.west_door_level = 1
+                    # # Mettre à jour le niveau de la porte à au moins 1
+                    # if tile.north_door_level == 0:
+                    #     tile.north_door_level = 1
+                    # if tile.south_door_level == 0:
+                    #     tile.south_door_level = 1
+                    # if tile.east_door_level == 0:
+                    #     tile.east_door_level = 1
+                    # if tile.west_door_level == 0:
+                    #     tile.west_door_level = 1
 
                 except Map.DoesNotExist:
                     pass  # Pas de map suivante, donc pas de portail

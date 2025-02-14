@@ -29,7 +29,8 @@ class Tile(models.Model):
     east_door_level = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
     west_door_level = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
     portal_to_map = models.ForeignKey(Map, on_delete=models.SET_NULL, null=True, blank=True, related_name='portal_tiles')
-    portal_destination_tile = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='arrival_tiles')
+    animation = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Ajouter une valeur par défaut
+    img = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Ajouter une valeur par défaut
 
     # Méthode pour changer de monde
     def change_map(self, game):
@@ -485,10 +486,11 @@ class ShopItem(models.Model):
 
 
 class TileSavedState(models.Model):
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)  
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     visited = models.BooleanField(default=False)
+    playable = models.BooleanField(default=True) 
     class Meta:
         unique_together = (('game', 'user', 'tile'),)  # Ensure unique combination of game, user, and tile
 
