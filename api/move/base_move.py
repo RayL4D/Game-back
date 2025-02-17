@@ -76,9 +76,6 @@ class BaseMove:
             tile_saved_state.visited = True
             tile_saved_state.save()
 
-    def save_game_state(self):
-        # Logique pour sauvegarder l'état du jeu
-        pass
 
     def handle_response(self, result):
         """Méthode pour gérer la réponse de l'action."""

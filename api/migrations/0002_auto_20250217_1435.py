@@ -127,22 +127,23 @@ def add_initial_data(apps, schema_editor):
     # Save the changes to the database
     #tile.save()
 
-    # Création de compétences
-    descriptions = {
-        'SKLN_00001': 'SKLD_00001',
-        'SKLN_00002': 'SKLD_00002',
-        'SKLN_00003': 'SKLD_00003',
-        'SKLN_00004': 'SKLD_00004',
-        'SKLN_00005': 'SKLD_00005',
-        'SKLN_00006': 'SKLD_00006',
-        'SKLN_00007': 'SKLD_00007',
-        'SKLN_00008': 'SKLD_00008',
-        'SKLN_00009': 'SKLD_00009',
-        'SKLN_00010': 'SKLD_00010',
+    # Création des compétences avec power
+    skills_data = {
+        'SKLN_00001': {'description': 'SKLD_00001', 'power': 20},
+        'SKLN_00002': {'description': 'SKLD_00002', 'power': 15},
+        'SKLN_00003': {'description': 'SKLD_00003', 'power': 25},
+        'SKLN_00004': {'description': 'SKLD_00004', 'power': 10},
+        'SKLN_00005': {'description': 'SKLD_00005', 'power': 20},
+        'SKLN_00006': {'description': 'SKLD_00006', 'power': 15},
+        'SKLN_00007': {'description': 'SKLD_00007', 'power': 30},
+        'SKLN_00008': {'description': 'SKLD_00008', 'power': 10},
+        'SKLN_00009': {'description': 'SKLD_00009', 'power': 15},
+        'SKLN_00010': {'description': 'SKLD_00010', 'power': 20},
     }
-    
-    for skill_name, skill_description in descriptions.items():
-        Skill.objects.create(name=skill_name, description=skill_description)
+
+    for skill_name, skill_info in skills_data.items():
+        Skill.objects.create(name=skill_name, description=skill_info['description'], power=skill_info['power'])
+
 
 
     
@@ -153,7 +154,7 @@ def add_initial_data(apps, schema_editor):
         tile=Tile.objects.get(map=map1a, posX=1, posY=0),
         species='NPCS_00007',
         role='NPCR_00001',
-        behaviour='Hostile',
+        behaviour='NPCB_00002',
         attack_power=1,
         defense=2,
         experience_reward=20,
@@ -161,7 +162,7 @@ def add_initial_data(apps, schema_editor):
 
     npc2 = NPC.objects.create(
         name='NPCN_00002',
-        hp=5,
+        hp=50,
         tile=Tile.objects.get(map=map1a, posX=2, posY=0),
         species='NPCS_00005',
         role='NPCR_00001',
@@ -173,8 +174,8 @@ def add_initial_data(apps, schema_editor):
 
     npc3 = NPC.objects.create(
         name='NPCN_00003',
-        hp=3,
-        tile=Tile.objects.get(map=map1a, posX=2, posY=1),
+        hp=25,
+        tile=Tile.objects.get(map=map1a, posX=2, posY=0),
         species='NPCS_00009',
         role='NPCR_00001',
         behaviour='NPCB_00001',
@@ -186,10 +187,10 @@ def add_initial_data(apps, schema_editor):
     npc4 = NPC.objects.create(
         name='NPCN_00004',
         hp=100,
-        tile=Tile.objects.get(map=map2a, posX=4, posY=3),
+        tile=Tile.objects.get(map=map1a, posX=0, posY=2),
         species='NPCS_00008',
         role='NPCR_00002',
-        behaviour='NPCB_00001',
+        behaviour='NPCB_00003',
         attack_power=30,
         defense=10,
         experience_reward=100,
@@ -336,6 +337,3 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(add_initial_data),
     ]
-
-
-

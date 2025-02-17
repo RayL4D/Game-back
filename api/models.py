@@ -300,13 +300,35 @@ class Game(models.Model):
     
 class Skill(models.Model):
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)  # Optional skill description
-    power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance d'attaque de la compétence
+    description = models.TextField(blank=True)  # Description optionnelle
+    power = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])  # Puissance de la compétence
+
+    def save(self, *args, **kwargs):
+        if not self.power:  # Vérifie si la puissance n'est pas déjà définie
+            self.power = self.generate_power()  # Génère la puissance automatiquement
+        super().save(*args, **kwargs)
+
+    def generate_power(self):
+        # Exemple de génération de puissance basé sur le nom ou un autre critère
+        skill_power_map = {
+            'SKLN_00001': 20,  # Exemple de puissance pour une compétence
+            'SKLN_00002': 15,
+            'SKLN_00003': 25,
+            'SKLN_00004': 10,
+            'SKLN_00005': 20,
+            'SKLN_00006': 15,
+            'SKLN_00007': 30,
+            'SKLN_00008': 10,
+            'SKLN_00009': 15,
+            'SKLN_00010': 20,
+        }
+        # Retourne la puissance de la compétence en fonction du nom (ou toute autre logique que vous préférez)
+        return skill_power_map.get(self.name, 0)  # Par défaut, puissance 0 si non défini
+
     def get_image_path(self):
         return f'/img/Skills/skill{self.id}.png'
 
     def generate_description(self):
-        # Example: Generate a description based on the skill name
         descriptions = {
             'SKLN_00001': 'SKLD_00001',
             'SKLN_00002': 'SKLD_00002',
@@ -319,7 +341,8 @@ class Skill(models.Model):
             'SKLN_00009': 'SKLD_00009',
             'SKLN_00010': 'SKLD_00010',
         }  
-        return descriptions.get(self.name, '')  # Return the description or an empty string if not found
+        return descriptions.get(self.name, '')  # Retourne la description ou une chaîne vide si non trouvée
+
     
     
 class CharacterSkill(models.Model):
