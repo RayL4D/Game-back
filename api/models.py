@@ -8,6 +8,10 @@ from django.utils import timezone
 import datetime 
 import json
 from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+
 
 # Create your models here.
     
@@ -430,10 +434,6 @@ class CharacterInventory(models.Model):
 
         self.save()  # Sauvegarde les changements
 
-
-
-
-
 class NPC(models.Model):
     name = models.CharField(max_length=255)
     hp = models.PositiveIntegerField(default=1)  # Monsters should have at least 1 HP
@@ -460,24 +460,17 @@ class NPC(models.Model):
     defense = models.PositiveIntegerField(default=1)
     experience_reward = models.PositiveIntegerField(default=1)  # Exemple de valeur d'expérience
 
-
-    def get_image_path(self):
-        return f'assets/images/monsters/monster{self.id}.png'
-    # Add fields for monster defense, special abilities, loot drops, etc. (optional)
-
 class Dialogue(models.Model):
-    text = models.TextField()
-    NPC = models.ForeignKey(NPC, on_delete=models.CASCADE)
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    def get_image_path(self):
-        return f'assets/images/dialogues/dialogue{self.id}.png'
+    CodeText = models.CharField(max_length=255)
+    CodeResponse1 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    CodeResponse2 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    CodeResponse3 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    Code_action = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
 
 class Shop(models.Model):
     name = models.CharField(max_length=255)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
     inventory = models.ManyToManyField(Item, through='ShopItem')
-    def get_image_path(self):
-        return f'assets/images/shops/shop{self.id}.png'
 
 class ShopItem(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
@@ -512,3 +505,10 @@ class ItemSavedState(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
+    
+class DialogueSavedState(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)  
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    dialogue = models.ForeignKey(Dialogue, on_delete=models.CASCADE)
+    tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
+    playable = models.BooleanField(default=True)

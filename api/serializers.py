@@ -1,7 +1,7 @@
 #graphGEFXServer/api/serializers.py
 
 from rest_framework import serializers
-from .models import User, Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState
+from .models import User, Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, DialogueSavedState, NPCSavedState, ItemSavedState, Dialogue
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -54,25 +54,14 @@ class GameSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Aucune map disponible.")
     
 class CharacterClassSerializer(serializers.ModelSerializer):
-    image_path = serializers.SerializerMethodField()  # Champ calculé pour le chemin de l'image
-
     class Meta:
         model = CharacterClass
         fields = '__all__'  # Champs à renvoyer
 
-    def get_image_path(self, obj):
-        return obj.get_image_path()  # Appel de la méthode du modèle pour obtenir le chemin
-        
-
 class SkillSerializer(serializers.ModelSerializer):
-    image_path = serializers.SerializerMethodField()
-
     class Meta:
         model = Skill
-        fields = '__all__'  # Incluez image_path
-
-    def get_image_path(self, obj):
-        return obj.get_image_path()
+        fields = '__all__'
 
 class CharacterSkillSerializer(serializers.ModelSerializer):
     class Meta:
@@ -102,10 +91,7 @@ class CharacterInventorySerializer(serializers.ModelSerializer):
 class TileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tile
-        fields = '__all__'   # Add 'image_path' here
-
-    def get_image_path(self, obj):
-        return obj.get_image_path() 
+        fields = '__all__'
 
 class NPCSerializer(serializers.ModelSerializer):
     class Meta:
@@ -132,11 +118,19 @@ class NPCSavedStateSerializer(serializers.ModelSerializer):
         model = NPCSavedState
         fields = '__all__'
 
-
 class ItemSavedStateSerializer(serializers.ModelSerializer):
-    image_path = serializers.SerializerMethodField()  # Add this line
     class Meta:
         model = ItemSavedState
+        fields = '__all__'
+
+class DialogueSavedStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DialogueSavedState
+        fields = '__all__'
+
+class DialogueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dialogue
         fields = '__all__'
 
 class MapContextSerializer(serializers.Serializer):
@@ -146,3 +140,7 @@ class MapContextSerializer(serializers.Serializer):
 class TileContextSerializer(serializers.Serializer):
     tile = TileSerializer()
     tile_saved_state = TileSavedStateSerializer()
+    
+class DialogueContextStateSerializer(serializers.ModelSerializer):
+    dialogue = DialogueSerializer()
+    dialogue_saved_state = DialogueSavedStateSerializer()

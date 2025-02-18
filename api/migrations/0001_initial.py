@@ -136,9 +136,11 @@ class Migration(migrations.Migration):
             name='Dialogue',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.game')),
-                ('NPC', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.npc')),
+                ('CodeText', models.CharField(max_length=255)),  
+                ('CodeResponse1', models.CharField(blank=True, null=True, max_length=255, default='0')),
+                ('CodeResponse2', models.CharField(blank=True, null=True, max_length=255, default='0')),
+                ('CodeResponse3', models.CharField(blank=True, null=True, max_length=255, default='0')),
+                ('Code_action', models.CharField(blank=True, null=True, max_length=255, default='0')),
             ],
         ),
         migrations.CreateModel(
@@ -171,9 +173,10 @@ class Migration(migrations.Migration):
                 ('south_door_level', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),
                 ('east_door_level', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),
                 ('west_door_level', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),
-                ('map', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='api.map')),
-                ('portal_destination_tile', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='arrival_tiles', to='api.tile')),
                 ('portal_to_map', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='portal_tiles', to='api.map')),
+                ('animation', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),  # Champ supplémentaire
+                ('img', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),  # Champ supplémentaire
+                ('map', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='api.map')),
             ],
         ),
         migrations.AddField(

@@ -3,8 +3,8 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets, permissions #,generics
-from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, MapContextSerializer, TileContextSerializer 
-from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState
+from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, MapContextSerializer, TileContextSerializer, DialogueContextStateSerializer, DialogueSerializer
+from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState, DialogueSavedState, Dialogue
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -364,6 +364,8 @@ class ItemViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     permission_classes = [IsAuthenticated]
 
+
+
 class CharacterInventoryViewSet(viewsets.ModelViewSet):
     queryset = CharacterInventory.objects.all()
     serializer_class = CharacterInventorySerializer
@@ -529,3 +531,38 @@ class TileContextViewSet(viewsets.ViewSet):
             print("Erreur : Game non trouvé")  # Debugging
             return Response({"error": "Game not found"}, status=404)
 
+class DialogueViewSet(viewsets.ModelViewSet):
+    queryset = Dialogue.objects.all()
+    serializer_class = DialogueSerializer
+    permission_classes = [IsAuthenticated]
+
+class DialogueContextViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<game_id>\d+)')
+    def get_dialogue_context(self, request, game_id):
+        try:
+            # Vérifier si le Game existe
+            game = Game.objects.get(id=game_id, user=request.user)
+            print("Game trouvé :", game)  # Debugging
+
+            # Récupérer tous les DialogueSavedState pour le jeu et l'utilisateur donnés
+            dialogue_saved_states = DialogueSavedState.objects.filter(game=game, user=request.user)
+
+            # Préparer la liste des données combinées
+            dialogue_context_data = []
+            for dialogue_saved_state in dialogue_saved_states:
+                dialogue = dialogue_saved_state.dialogue  # Le Dialogue associé au DialogueSavedState
+                
+                # Utiliser DialogueContextStateSerializer pour sérialiser les objets combinés
+                dialogue_context_data.append(DialogueContextStateSerializer({
+                    'dialogue': dialogue,
+                    'dialogue_saved_state': dialogue_saved_state
+                }).data)
+
+            # Renvoie la réponse avec les données combinées
+            return Response(dialogue_context_data)
+
+        except Game.DoesNotExist:
+            print("Erreur : Game non trouvé")  # Debugging
+            return Response({"error": "Game not found"}, status=404)
