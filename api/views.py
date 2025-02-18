@@ -495,7 +495,6 @@ class MapContextViewSet(viewsets.ViewSet):
 
         # Renvoie la réponse avec les données combinées
         return Response(tile_context_data)
-    
 class TileContextViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
@@ -503,29 +502,52 @@ class TileContextViewSet(viewsets.ViewSet):
     def get_tile_context(self, request, game_id):
         try:
             # Vérifier si le Game existe
-            game = Game.objects.get(id=game_id)
+            game = Game.objects.get(id=game_id, user=request.user)
             print("Game trouvé :", game)  # Debugging
 
-            # Vérifier si une current_tile est définie
-            current_tile = game.current_tile
-            if not current_tile:
-                print("Erreur : Pas de current_tile")  # Debugging
-                return Response({"error": "No current tile set for this game"}, status=404)
+            # Récupérer toutes les TileSavedState pour le jeu et l'utilisateur donnés
+            tile_saved_states = TileSavedState.objects.filter(game=game, user=request.user)
 
-            # Vérifier si un TileSavedState existe pour cette current_tile
-            tile_saved_state = TileSavedState.objects.filter(game=game, tile=current_tile, visited=True).first()
-            print("TileSavedState trouvé :", tile_saved_state)  # Debugging
+            # Préparer la liste des données combinées
+            tile_context_data = []
+            for tile_saved_state in tile_saved_states:
+                tile = tile_saved_state.tile  # La Tile associée au TileSavedState
 
-            if not tile_saved_state:
-                print("Erreur : Tile non visitée")  # Debugging
-                return Response({"error": "Current tile has not been visited"}, status=404)
+                # Vérifier si la Tile a une animation
+                if tile.animation:
+                    try:
+                        dialogue = Dialogue.objects.get(id=tile.animation)
+                        # Créer un DialogueSavedState si nécessaire
+                        dialogue_saved_state, created = DialogueSavedState.objects.get_or_create(
+                            game=game,
+                            user=request.user,
+                            dialogue=dialogue,
+                            tile=tile
+                        )
+                        # Mettre à jour les flags playable
+                        dialogue_saved_state.playable = False
+                        tile_saved_state.playable = False
+                        dialogue_saved_state.save()
+                        tile_saved_state.save()
 
-            # Sérialisation et réponse
-            serializer = TileContextSerializer({
-                "tile": current_tile,
-                "tile_saved_state": tile_saved_state
-            })
-            return Response(serializer.data)
+                        # Ajouter les données du dialogue au contexte de la tile
+                        tile_context_data.append({
+                            'tile': TileSerializer(tile).data,
+                            'tile_saved_state': TileSavedStateSerializer(tile_saved_state).data,
+                            'dialogue': DialogueSerializer(dialogue).data,
+                            'dialogue_saved_state': DialogueSavedStateSerializer(dialogue_saved_state).data
+                        })
+                    except Dialogue.DoesNotExist:
+                        print(f"Dialogue avec l'ID {tile.animation} non trouvé.")
+                else:
+                    # Ajouter les données de la tile sans dialogue
+                    tile_context_data.append({
+                        'tile': TileSerializer(tile).data,
+                        'tile_saved_state': TileSavedStateSerializer(tile_saved_state).data
+                    })
+
+            # Renvoie la réponse avec les données combinées
+            return Response(tile_context_data)
 
         except Game.DoesNotExist:
             print("Erreur : Game non trouvé")  # Debugging

@@ -459,6 +459,7 @@ class NPC(models.Model):
     attack_power = models.PositiveIntegerField(default=1)
     defense = models.PositiveIntegerField(default=1)
     experience_reward = models.PositiveIntegerField(default=1)  # Exemple de valeur d'expérience
+    dialogue = models.ForeignKey(Dialogue, on_delete=models.SET_NULL, null=True, blank=True)
 
 class Dialogue(models.Model):
     CodeText = models.CharField(max_length=255)
@@ -466,6 +467,8 @@ class Dialogue(models.Model):
     CodeResponse2 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
     CodeResponse3 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
     Code_action = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    Animation = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    img = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
 
 class Shop(models.Model):
     name = models.CharField(max_length=255)
