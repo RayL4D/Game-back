@@ -24,6 +24,7 @@ from .move.east_move import EastMove
 from .move.west_move import WestMove
 from .move.north_move import NorthMove
 from .move.south_move import SouthMove
+from .move.run_move import RunMove
 from django.core import serializers
 from drf_yasg import openapi
 from .move.jump_move import JumpMove            
@@ -328,6 +329,7 @@ class GameMoveViewSet(viewsets.ViewSet):
             'north': NorthMove,
             'south': SouthMove,
             'jump': JumpMove,
+            'run': RunMove,
         }
 
         move_class = move_classes.get(direction)

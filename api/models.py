@@ -93,7 +93,8 @@ class Game(models.Model):
     silver = models.PositiveIntegerField(default=0)
     gold = models.PositiveIntegerField(default=0)
 
-    current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game') 
+    current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game')
+    previous_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='previous_games')  # Nouveau champ
     inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'bag'))    
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
     #session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
