@@ -98,6 +98,7 @@ class Game(models.Model):
     silver = models.PositiveIntegerField(default=0)
     gold = models.PositiveIntegerField(default=0)
 
+    previous_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='previous_games')  # Nouveau champ
     current_tile = models.ForeignKey('Tile', on_delete=models.SET_NULL, null=True, related_name='game') 
     inventory = models.ManyToManyField('Item', through='CharacterInventory', through_fields=('game', 'bag'))    
     skills = models.ManyToManyField('Skill', through='CharacterSkill')
@@ -433,7 +434,16 @@ class CharacterInventory(models.Model):
                     self.locked_slots.pop(locked_attr)  # Déverrouille le slot
 
         self.save()  # Sauvegarde les changements
-
+        
+class Dialogue(models.Model):
+    CodeText = models.CharField(max_length=255)
+    CodeResponse1 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    CodeResponse2 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    CodeResponse3 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    Code_action = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    Animation = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    img = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    
 class NPC(models.Model):
     name = models.CharField(max_length=255)
     hp = models.PositiveIntegerField(default=1)  # Monsters should have at least 1 HP
@@ -460,15 +470,6 @@ class NPC(models.Model):
     defense = models.PositiveIntegerField(default=1)
     experience_reward = models.PositiveIntegerField(default=1)  # Exemple de valeur d'expérience
     dialogue = models.ForeignKey(Dialogue, on_delete=models.SET_NULL, null=True, blank=True)
-
-class Dialogue(models.Model):
-    CodeText = models.CharField(max_length=255)
-    CodeResponse1 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
-    CodeResponse2 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
-    CodeResponse3 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
-    Code_action = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
-    Animation = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
-    img = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
 
 class Shop(models.Model):
     name = models.CharField(max_length=255)

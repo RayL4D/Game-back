@@ -3,7 +3,7 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets, permissions #,generics
-from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, MapContextSerializer, TileContextSerializer, DialogueContextStateSerializer, DialogueSerializer
+from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, MapContextSerializer, TileContextSerializer, DialogueContextStateSerializer, DialogueSerializer, DialogueSavedStateSerializer
 from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState, DialogueSavedState, Dialogue
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
@@ -24,6 +24,7 @@ from .move.east_move import EastMove
 from .move.west_move import WestMove
 from .move.north_move import NorthMove
 from .move.south_move import SouthMove
+from .move.run_move import RunMove
 from django.core import serializers
 from drf_yasg import openapi
 from .move.jump_move import JumpMove            
@@ -328,6 +329,7 @@ class GameMoveViewSet(viewsets.ViewSet):
             'north': NorthMove,
             'south': SouthMove,
             'jump': JumpMove,
+            'run': RunMove,
         }
 
         move_class = move_classes.get(direction)
@@ -495,6 +497,7 @@ class MapContextViewSet(viewsets.ViewSet):
 
         # Renvoie la réponse avec les données combinées
         return Response(tile_context_data)
+    
 class TileContextViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 

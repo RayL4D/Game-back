@@ -48,11 +48,14 @@ class BaseMove:
 
     def execute(self, new_posX, new_posY):
         current_tile = self.game.current_tile
+        # Sauvegarder la tuile actuelle comme précédente avant le déplacement
+        self.game.previous_tile = current_tile
+
         print(f"Nouvelle position calculée : ({new_posX}, {new_posY})")
 
         # Vérifier la nouvelle tuile
         target_tile = Tile.objects.filter(map=current_tile.map, posX=new_posX, posY=new_posY).first()
-
+        
         if target_tile is None:
             self.error_codes.append("D500")
             self.is_ok = False

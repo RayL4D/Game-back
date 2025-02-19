@@ -153,6 +153,8 @@ def add_initial_data(apps, schema_editor):
         defense=10,
         experience_reward=100,
     )
+    
+
 
     # Épée en bois
     wooden_sword = Item.objects.create(
@@ -361,7 +363,20 @@ def add_initial_data(apps, schema_editor):
         CodeText='DIALT_00017',
         Code_action='O',   
     )
-
+    
+    npc5 = NPC.objects.create(
+        name='NPCN_00005',
+        hp=100,
+        tile=Tile.objects.get(map=map1a, posX=2, posY=2),
+        species='NPCS_00010',
+        role='NPCR_00003',
+        behaviour='NPCB_00003',
+        attack_power=30,
+        defense=10,
+        experience_reward=100,
+        dialogue=Dialogue.objects.get(id=1),
+    )
+    
 class Migration(migrations.Migration):
 
     dependencies = [
