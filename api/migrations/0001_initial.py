@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Création du modèle CharacterClass
         migrations.CreateModel(
             name='CharacterClass',
             fields=[
@@ -24,6 +25,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True)),
             ],
         ),
+        # Création du modèle Item
         migrations.CreateModel(
             name='Item',
             fields=[
@@ -38,6 +40,7 @@ class Migration(migrations.Migration):
                 ('bodypart_lock', models.CharField(blank=True, max_length=5, null=True)),
             ],
         ),
+        # Création du modèle Map
         migrations.CreateModel(
             name='Map',
             fields=[
@@ -47,6 +50,21 @@ class Migration(migrations.Migration):
                 ('starting_map', models.BooleanField(default=False)),
             ],
         ),
+        # Création du modèle Dialogue
+        migrations.CreateModel(
+            name='Dialogue',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('CodeText', models.CharField(max_length=255)),
+                ('CodeResponse1', models.CharField(max_length=255, default='0', null=True, blank=True)),
+                ('CodeResponse2', models.CharField(max_length=255, default='0', null=True, blank=True)),
+                ('CodeResponse3', models.CharField(max_length=255, default='0', null=True, blank=True)),
+                ('Code_action', models.CharField(max_length=255, default='0', null=True, blank=True)),
+                ('Animation', models.CharField(max_length=255, default='0', null=True, blank=True)),
+                ('img', models.CharField(max_length=255, default='0', null=True, blank=True)),
+            ],
+        ),
+        # Création du modèle NPC
         migrations.CreateModel(
             name='NPC',
             fields=[
@@ -60,8 +78,10 @@ class Migration(migrations.Migration):
                 ('attack_power', models.PositiveIntegerField(default=1)),
                 ('defense', models.PositiveIntegerField(default=1)),
                 ('experience_reward', models.PositiveIntegerField(default=1)),
+                ('dialogue', models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, null=True, blank=True, to='api.Dialogue')),
             ],
         ),
+        # Création du modèle Shop
         migrations.CreateModel(
             name='Shop',
             fields=[
@@ -69,6 +89,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255)),
             ],
         ),
+        # Création du modèle Skill
         migrations.CreateModel(
             name='Skill',
             fields=[
@@ -78,6 +99,7 @@ class Migration(migrations.Migration):
                 ('power', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),
             ],
         ),
+        # Création du modèle Game
         migrations.CreateModel(
             name='Game',
             fields=[
@@ -94,72 +116,70 @@ class Migration(migrations.Migration):
                 ('gold', models.PositiveIntegerField(default=0)),
                 ('created_at', models.DateTimeField(default=datetime.datetime.now)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('character_class', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.characterclass')),
+                ('character_class', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.CharacterClass')),
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
+        # Création du modèle CharacterSkill
         migrations.CreateModel(
             name='CharacterSkill',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('level', models.PositiveIntegerField(default=1)),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.game')),
-                ('skill', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.skill')),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Game')),
+                ('skill', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Skill')),
             ],
         ),
+        # Création du modèle CharacterInventory
         migrations.CreateModel(
             name='CharacterInventory',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('locked_slots', models.JSONField(default=dict)),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.game')),
-                ('bag', models.ManyToManyField(related_name='character_inventory', to='api.item')),
-                ('boots', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_boots', to='api.item')),
-                ('chestplate', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_chestplate', to='api.item')),
-                ('helmet', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_helmet', to='api.item')),
-                ('leggings', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_leggings', to='api.item')),
-                ('primary_weapon', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_primary_weapon', to='api.item')),
-                ('secondary_weapon', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_secondary_weapon', to='api.item')),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Game')),
+                ('bag', models.ManyToManyField(related_name='character_inventory', to='api.Item')),
+                ('boots', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_boots', to='api.Item')),
+                ('chestplate', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_chestplate', to='api.Item')),
+                ('helmet', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_helmet', to='api.Item')),
+                ('leggings', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_leggings', to='api.Item')),
+                ('primary_weapon', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_primary_weapon', to='api.Item')),
+                ('secondary_weapon', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='equipped_as_secondary_weapon', to='api.Item')),
             ],
         ),
+        # Ajout des relations ManyToMany pour Game
         migrations.AddField(
             model_name='game',
             name='inventory',
-            field=models.ManyToManyField(through='api.CharacterInventory', to='api.item'),
+            field=models.ManyToManyField(through='api.CharacterInventory', to='api.Item'),
         ),
         migrations.AddField(
             model_name='game',
             name='map',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.map'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.Map'),
         ),
-        migrations.CreateModel(
-            name='Dialogue',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.game')),
-                ('NPC', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.npc')),
-            ],
-        ),
+        # Création du modèle ShopItem
         migrations.CreateModel(
             name='ShopItem',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('price', models.PositiveIntegerField(default=0)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.item')),
-                ('shop', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.shop')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Item')),
+                ('shop', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Shop')),
             ],
         ),
+        # Ajout des relations ManyToMany pour Shop
         migrations.AddField(
             model_name='shop',
             name='inventory',
-            field=models.ManyToManyField(through='api.ShopItem', to='api.item'),
+            field=models.ManyToManyField(through='api.ShopItem', to='api.Item'),
         ),
+        # Ajout des relations ManyToMany pour Game
         migrations.AddField(
             model_name='game',
             name='skills',
-            field=models.ManyToManyField(through='api.CharacterSkill', to='api.skill'),
+            field=models.ManyToManyField(through='api.CharacterSkill', to='api.Skill'),
         ),
+        # Création du modèle Tile
         migrations.CreateModel(
             name='Tile',
             fields=[
@@ -171,16 +191,18 @@ class Migration(migrations.Migration):
                 ('south_door_level', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),
                 ('east_door_level', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),
                 ('west_door_level', models.PositiveIntegerField(default=0, validators=[django.core.validators.MinValueValidator(0)])),
-                ('map', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='api.map')),
-                ('portal_destination_tile', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='arrival_tiles', to='api.tile')),
-                ('portal_to_map', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='portal_tiles', to='api.map')),
+                ('map', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='api.Map')),
+                ('portal_destination_tile', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='arrival_tiles', to='api.Tile')),
+                ('portal_to_map', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='portal_tiles', to='api.Map')),
             ],
         ),
+        # Ajout de la relation ForeignKey pour Shop
         migrations.AddField(
             model_name='shop',
             name='tile',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.tile'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Tile'),
         ),
+        # Création du modèle NPCSavedState
         migrations.CreateModel(
             name='NPCSavedState',
             fields=[
@@ -188,53 +210,70 @@ class Migration(migrations.Migration):
                 ('hp', models.IntegerField()),
                 ('behaviour', models.CharField(choices=[('NPCB_00002', 'NPCB_00002'), ('NPCB_00003', 'NPCB_00003'), ('NPCB_00001', 'NPCB_00001')], max_length=255)),
                 ('is_dead', models.BooleanField(default=False)),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.game')),
-                ('npc', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.npc')),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Game')),
+                ('npc', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.NPC')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('tile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.tile')),
+                ('tile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Tile')),
             ],
         ),
+        # Ajout de la relation ForeignKey pour NPC
         migrations.AddField(
             model_name='npc',
             name='tile',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.tile'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Tile'),
         ),
+        # Création du modèle ItemSavedState
         migrations.CreateModel(
             name='ItemSavedState',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.game')),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.item')),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Game')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Item')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('tile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.tile')),
+                ('tile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Tile')),
             ],
         ),
+        # Ajout de la relation ForeignKey pour Item
         migrations.AddField(
             model_name='item',
             name='tile',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.tile'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Tile'),
         ),
+        # Ajout de la relation ForeignKey pour Game
         migrations.AddField(
             model_name='game',
             name='current_tile',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='game', to='api.tile'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='game', to='api.Tile'),
         ),
         migrations.AddField(
             model_name='game',
             name='previous_tile',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='previous_games', to='api.tile'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='previous_games', to='api.Tile'),
         ),
+        # Création du modèle TileSavedState
         migrations.CreateModel(
             name='TileSavedState',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('visited', models.BooleanField(default=False)),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.game')),
-                ('tile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.tile')),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Game')),
+                ('tile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Tile')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'unique_together': {('game', 'user', 'tile')},
             },
+        ),
+        # Création du modèle DialogueSavedState
+        migrations.CreateModel(
+            name='DialogueSavedState',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('playable', models.BooleanField(default=True)),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Game')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('dialogue', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Dialogue')),
+                ('tile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Tile')),
+            ],
         ),
     ]

@@ -3,7 +3,7 @@
 
 from django.shortcuts import render
 from rest_framework import viewsets, permissions #,generics
-from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, MapContextSerializer, TileContextSerializer 
+from .serializers import UserSerializer, MapSerializer, GameSerializer, CharacterClassSerializer, SkillSerializer, CharacterSkillSerializer, ItemSerializer, CharacterInventorySerializer, TileSerializer, NPCSerializer, ShopSerializer, ShopItemSerializer, TileSavedStateSerializer, NPCSavedStateSerializer, ItemSavedStateSerializer, MapContextSerializer, TileContextSerializer, DialogueSavedState, DialogueContextSerializer
 from .models import  Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
@@ -531,3 +531,33 @@ class TileContextViewSet(viewsets.ViewSet):
             print("Erreur : Game non trouvé")  # Debugging
             return Response({"error": "Game not found"}, status=404)
 
+class DialogueContextViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<game_id>\d+)/(?P<npc_id>\d+)')
+    def get_dialogue_context(self, request, game_id, npc_id):
+        try:
+            # Récupérer le jeu et le NPC
+            game = Game.objects.get(id=game_id)
+            npc = NPC.objects.get(id=npc_id)
+
+            # Vérifier si le NPC est sur la tuile actuelle du jeu
+            if npc.tile != game.current_tile:
+                return Response({"error": "NPC is not on the current tile"}, status=404)
+
+            # Récupérer le DialogueSavedState pour le jeu et le NPC
+            dialogue_saved_state = DialogueSavedState.objects.get(game=game, dialogue=npc.dialogue, tile=game.current_tile)
+
+            # Sérialiser les données du DialogueSavedState et du dialogue associé
+            serializer = DialogueContextSerializer({
+                "dialogue": dialogue_saved_state.dialogue,
+                "dialogue_saved_state": dialogue_saved_state
+            })
+            return Response(serializer.data)
+
+        except Game.DoesNotExist:
+            return Response({"error": "Game not found"}, status=404)
+        except NPC.DoesNotExist:
+            return Response({"error": "NPC not found"}, status=404)
+        except DialogueSavedState.DoesNotExist:
+            return Response({"error": "DialogueSavedState not found"}, status=404)

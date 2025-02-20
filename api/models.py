@@ -44,8 +44,6 @@ class Tile(models.Model):
                 game.current_tile = Tile.objects.filter(map=self.portal_to_map).first()
 
             game.save()
-
-
     
 class CharacterClass(models.Model):  # New model for character classes
     name = models.CharField(max_length=255, unique=True)
@@ -100,36 +98,6 @@ class Game(models.Model):
     #session_key = models.ForeignKey(Session, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     updated_at = models.DateTimeField(auto_now=True)  # Date de la dernière mise à jour
-    
-
-
-    # def save_game_state(self):
-    #     # Serialize character data and store it in the session
-    #     session = Session.objects.get_or_create(expire_date=timezone.now() + datetime.timedelta(days=1))[0]  # Create or get session
-    #     self.session_key = session
-    #     game_data = {
-    #         'name': self.name,
-    #         'current_tile': self.current_tile.id if self.current_tile else None,
-    #         'inventory': [item.id for item in self.characterinventory_set.all()],  # Get inventory item IDs
-    #     }
-    #     session.session_data['game_data'] = json.dumps(game_data)  # Serialize data to JSON
-    #     session.save()
-    #     self.save()  # Save character with updated session key
-
-    # def load_game_state(self):
-    #     # Check if a session exists with character data
-    #     session = self.session_key
-    #     if session and 'game_data' in session.session_data:
-    #         game_data = json.loads(session.session_data['game_data'])
-    #         self.current_tile = Tile.objects.get(pk=game_data['current_tile']) if game_data['current_tile'] else None
-    #         # Load inventory items based on retrieved IDs (consider using bulk operations for efficiency)
-    #         self.characterinventory_set.clear()  # Clear existing inventory before loading
-    #         for item_id in game_data['inventory']:
-    #             item = Item.objects.get(pk=item_id)
-    #             CharacterInventory.objects.create(game=self, item=item)
-    #     else:
-    #         print("No saved game state found")
-
 
     def save_from_game(self, game):
         self.current_tile = game.current_tile
@@ -186,19 +154,6 @@ class Game(models.Model):
                 visited=True
             )
 
-            """
-            if next_tile:
-                TileSavedState.objects.create(
-                    game=self,
-                    user=self.user,
-                    tile=next_tile,
-                    visited=True
-                )
-            else:
-                print("La tile suivante n'existe pas.")
-            """
-
-
         if creating:
             self.assign_class_skills()  # Assign class skills
             self.create_default_inventory()  # Attribuer l'équipement par défaut
@@ -234,9 +189,6 @@ class Game(models.Model):
             character_inventory.bag.add(item)
 
         character_inventory.save()
-
-
-
         
     def get_default_hp(self):
         # Define default HP based on character class
@@ -453,9 +405,21 @@ class CharacterInventory(models.Model):
 
         self.save()  # Sauvegarde les changements
 
+class Dialogue(models.Model):
+    CodeText = models.CharField(max_length=255)
+    CodeResponse1 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    CodeResponse2 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    CodeResponse3 = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    Code_action = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    Animation = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
+    img = models.CharField(max_length=255, default='0', null=True, blank=True)  # Ajouter une valeur par défaut
 
-
-
+class DialogueSavedState(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)  
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    dialogue = models.ForeignKey(Dialogue, on_delete=models.CASCADE)
+    tile = models.ForeignKey(Tile, on_delete=models.CASCADE)
+    playable = models.BooleanField(default=True)
 
 class NPC(models.Model):
     name = models.CharField(max_length=255)
@@ -482,18 +446,14 @@ class NPC(models.Model):
     attack_power = models.PositiveIntegerField(default=1)
     defense = models.PositiveIntegerField(default=1)
     experience_reward = models.PositiveIntegerField(default=1)  # Exemple de valeur d'expérience
+    dialogue = models.ForeignKey(Dialogue, on_delete=models.SET_NULL, null=True, blank=True)
 
 
     def get_image_path(self):
         return f'assets/images/monsters/monster{self.id}.png'
     # Add fields for monster defense, special abilities, loot drops, etc. (optional)
 
-class Dialogue(models.Model):
-    text = models.TextField()
-    NPC = models.ForeignKey(NPC, on_delete=models.CASCADE)
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    def get_image_path(self):
-        return f'assets/images/dialogues/dialogue{self.id}.png'
+
 
 class Shop(models.Model):
     name = models.CharField(max_length=255)

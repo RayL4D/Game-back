@@ -1,7 +1,7 @@
 #graphGEFXServer/api/serializers.py
 
 from rest_framework import serializers
-from .models import User, Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState
+from .models import User, Map, Game, CharacterClass, Skill, CharacterSkill, Item, CharacterInventory, Tile, NPC, Shop, ShopItem, TileSavedState, NPCSavedState, ItemSavedState, Dialogue, DialogueSavedState
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -138,7 +138,15 @@ class ItemSavedStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemSavedState
         fields = '__all__'
-
+        
+class DialogueSerializer(serializers.Serializer):
+    model = Dialogue()
+    fields = '__all__'
+    
+class DialogueSavedStateSerializer(serializers.Serializer):
+    model = DialogueSavedState()
+    fields = '__all__'
+    
 class MapContextSerializer(serializers.Serializer):
     tile = TileSerializer()
     tile_saved_state = TileSavedStateSerializer()
@@ -146,3 +154,7 @@ class MapContextSerializer(serializers.Serializer):
 class TileContextSerializer(serializers.Serializer):
     tile = TileSerializer()
     tile_saved_state = TileSavedStateSerializer()
+    
+class DialogueContextSerializer(serializers.Serializer):
+    Dialogue = DialogueSerializer()
+    Dialogue_Saved_State = DialogueSavedStateSerializer()

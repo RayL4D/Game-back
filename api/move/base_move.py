@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from ..serializers import GameSerializer
-from ..models import Tile, TileSavedState
+from ..models import Tile, TileSavedState, DialogueSavedState, NPC
 
 class BaseMove:
     def __init__(self, game, request_data):
@@ -79,6 +79,16 @@ class BaseMove:
             tile_saved_state.visited = True
             tile_saved_state.save()
 
+        # Vérifier et créer DialogueSavedState si un NPC avec un dialogue est présent sur la nouvelle tuile
+        npc_on_tile = NPC.objects.filter(tile=target_tile, dialogue__isnull=False).first()
+        if npc_on_tile:
+            DialogueSavedState.objects.get_or_create(
+                game=self.game,
+                user=self.game.user,
+                dialogue=npc_on_tile.dialogue,
+                tile=target_tile,
+                defaults={'playable': True}
+            )
 
     def handle_response(self, result):
         """Méthode pour gérer la réponse de l'action."""
